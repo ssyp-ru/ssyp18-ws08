@@ -1,4 +1,7 @@
 *.iml
-.idea	
-target
+*/.idea/*	
+*/target/*
 *.txt
+target
+netlib/target
+netlib/.idea

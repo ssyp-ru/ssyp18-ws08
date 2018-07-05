@@ -1,0 +1,50 @@
+package ru.enginner
+
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.TopicPartition
+import java.util.Arrays.asList
+
+class NetLobby(private val gameName: String, private val isHost: Boolean, private val nick: String,
+               private val ip: String, val net: Net, val players: ArrayList<NetPlayer>) : Thread("Lobby") {
+    private val cons = Net.createConsumer(ip, nick)
+    private val prod = Net.createProducer(ip)
+    private val adm = NetAdmin(ip)
+    private val topicName = "-LOBBY-$gameName"
+    private var isGameReady = false
+
+    override fun run() {
+        if (isHost) {
+            if (!adm.lisTopics().contains(topicName)) adm.createTopic(topicName, 3)
+            prod.send(ProducerRecord(topicName, Net.LOBBY, "newGame", gameName)).get()
+        }
+        adm.createTopic("-PLAYER-$nick", 1)
+        cons.assign(asList(TopicPartition(topicName, Net.LOBBY)))
+        prod.send(ProducerRecord(topicName, Net.LOBBY, "player", nick)).get()
+        waitPlayers()
+        net.setGameStarted()
+        if (!isHost) net.startGame()
+    }
+
+    private fun waitPlayers() {
+        val part = TopicPartition(topicName, 0)
+        cons.seekToEnd(asList(part))
+        var records = cons.poll(10)
+        var offset: Long = cons.endOffsets(asList(part))[part]!! - 1
+        while (if (records.iterator().hasNext()) (records.iterator().next().key() != "newGame") else true) {
+            cons.seek(part, offset)
+            records = cons.poll(10)
+            if (records.isEmpty) continue
+            println("$offset")
+            offset--
+        }
+        cons.seek(part, ++offset)
+        while (!isGameReady) {
+            val records = cons.poll(100)
+            for (r in records) {
+                if (r.key() == "player") players.add(NetPlayer(r.value(), true, false))
+                if ((r.key() == "state") and (r.value() == "ready")) isGameReady = true
+            }
+        }
+        if (isHost) players[0].isHost = true
+    }
+}
