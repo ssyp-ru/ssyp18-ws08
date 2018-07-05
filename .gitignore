@@ -2,3 +2,5 @@
 .idea	
 target
 *.txt
+*.dll
+*.xml
