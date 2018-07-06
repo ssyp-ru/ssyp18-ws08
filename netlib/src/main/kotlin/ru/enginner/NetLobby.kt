@@ -3,11 +3,18 @@ package ru.enginner
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.TopicPartition
 import java.util.Arrays.asList
+import java.util.concurrent.locks.ReentrantLock
 
-class NetLobby(private val gameName: String, private val isHost: Boolean, private val nick: String,
-               private val ip: String, val net: Net, val players: ArrayList<NetPlayer>) : Thread("Lobby") {
-    private val cons = Net.createConsumer(ip, nick)
-    private val prod = Net.createProducer(ip)
+class NetLobby(private val gameName: String,
+               private val isHost: Boolean,
+               private val nick: String,
+                           ip: String,
+               private val net: Network,
+               private val players: ArrayList<NetPlayer>,
+               private val playersLock: ReentrantLock):
+        Thread("Lobby") {
+    private val cons = Network.createConsumer(ip, nick)
+    private val prod = Network.createProducer(ip)
     private val adm = NetAdmin(ip)
     private val topicName = "-LOBBY-$gameName"
     private var isGameReady = false
@@ -15,11 +22,11 @@ class NetLobby(private val gameName: String, private val isHost: Boolean, privat
     override fun run() {
         if (isHost) {
             if (!adm.lisTopics().contains(topicName)) adm.createTopic(topicName, 3)
-            prod.send(ProducerRecord(topicName, Net.LOBBY, "newGame", gameName)).get()
+            prod.send(ProducerRecord(topicName, Network.LOBBY, "newGame", gameName)).get()
         }
         adm.createTopic("-PLAYER-$nick", 1)
-        cons.assign(asList(TopicPartition(topicName, Net.LOBBY)))
-        prod.send(ProducerRecord(topicName, Net.LOBBY, "player", nick)).get()
+        cons.assign(asList(TopicPartition(topicName, Network.LOBBY)))
+        prod.send(ProducerRecord(topicName, Network.LOBBY, "player", nick)).get()
         waitPlayers()
         net.setGameStarted()
         if (!isHost) net.startGame()
@@ -39,9 +46,11 @@ class NetLobby(private val gameName: String, private val isHost: Boolean, privat
         }
         cons.seek(part, ++offset)
         while (!isGameReady) {
-            val records = cons.poll(100)
+            records = cons.poll(100)
             for (r in records) {
+                playersLock.lock()
                 if (r.key() == "player") players.add(NetPlayer(r.value(), true, false))
+                playersLock.unlock()
                 if ((r.key() == "state") and (r.value() == "ready")) isGameReady = true
             }
         }

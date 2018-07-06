@@ -13,7 +13,7 @@ class NetAdmin(ip: String) {
     init {
         admProperties.setProperty("bootstrap.servers", ip)
         admin = AdminClient.create(admProperties)
-        cons = Net.createConsumer(ip, "")
+        cons = Network.createConsumer(ip, "")
     }
 
     fun createTopic(topicName: String, parts: Int) {

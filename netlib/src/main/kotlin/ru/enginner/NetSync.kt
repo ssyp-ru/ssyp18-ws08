@@ -12,12 +12,20 @@ import java.io.*
 import java.util.*
 import java.util.Arrays.asList
 
-class NetSync(var gs: Serializable, private var isHost: Boolean, val ip: String, nick: String,
-              gameName: String) : Thread("Syncer") {
+class NetSync(            gs: Serializable,
+              private var isHost: Boolean,
+                          ip: String, nick: String,
+              gameName: String):
+        Thread("Syncer") {
     private val prod: KafkaProducer<String, ByteArray>
     private val cons: KafkaConsumer<String, ByteArray>
     private val topicName = "-LOBBY-$gameName"
-
+    private var gsarr: ByteArray
+    var gameState: Serializable = gs
+        set(gs: Serializable){
+            if(isHost)gsarr = serialize(gs)
+            field = gs
+        }
     init {
         val consProperties = Properties()
         consProperties.setProperty("bootstrap.servers", ip)
@@ -26,7 +34,7 @@ class NetSync(var gs: Serializable, private var isHost: Boolean, val ip: String,
         consProperties.setProperty("enable.auto.commit", "true")
         consProperties.setProperty("auto.commit", "1000")
         consProperties.setProperty("group.id", "$nick-SYNC")
-        cons = KafkaConsumer<String, ByteArray>(consProperties)
+        cons = KafkaConsumer(consProperties)
 
         val prodProperties = Properties()
         prodProperties.setProperty("bootstrap.servers", ip)
@@ -34,10 +42,13 @@ class NetSync(var gs: Serializable, private var isHost: Boolean, val ip: String,
         prodProperties.setProperty("value.serializer", ByteArraySerializer::class.java.name)
         prodProperties.setProperty("retries", "5")
         prodProperties.setProperty("acks", "1")
-        prod = KafkaProducer<String, ByteArray>(prodProperties)
+        prod = KafkaProducer(prodProperties)
 
-        cons.assign(asList(TopicPartition(topicName, Net.SYNC)))
-        println("(Net)Sync initiazized!")
+        cons.assign(asList(TopicPartition(topicName, Network.SYNC)))
+        //gameState = gs
+        gsarr = serialize(gs)
+
+        println("(Network)Sync initiazized!")
     }
 
     fun setHost(b: Boolean) {
@@ -45,18 +56,21 @@ class NetSync(var gs: Serializable, private var isHost: Boolean, val ip: String,
         println(if (isHost) "ama host now" else "ama bomzh now")
     }
 
-    fun setGameState(st: Serializable) {
-        gs = st
+
+
+
+    /*fun setGameState(st: Serializable) {
+        gameState = st
     }
 
     fun getGameState(): Serializable {
-        return gs
-    }
+        return gameState
+    }*/
 
     override fun run() {
         while (true) {
             if (isHost) {
-                prod.send(ProducerRecord(topicName, Net.SYNC, "sync", serialize(gs)))
+                prod.send(ProducerRecord(topicName, Network.SYNC, "sync", gsarr))
                 //println("send sync")
                 Thread.sleep(950)
             } else {
@@ -65,27 +79,34 @@ class NetSync(var gs: Serializable, private var isHost: Boolean, val ip: String,
 
                     if (r.key() == "sync") {
                         //println("recieve sync")
-                        gs = deserialize(r.value())
+                        //lock
+                        gameState = deserialize(r.value())
+                        //unlock
                     }
                 }
             }
         }
     }
 
-    fun serialize(gs: Serializable): ByteArray {
+    private fun serialize(gs: Serializable): ByteArray {
         val baos = ByteArrayOutputStream()
         val oos = ObjectOutputStream(baos)
         oos.writeObject(gs)
         return baos.toByteArray()
     }
 
-    fun deserialize(arr: ByteArray): Serializable {
+    private fun deserialize(arr: ByteArray): Serializable {
         val bais = ByteArrayInputStream(arr)
         val ois = ObjectInputStream(bais)
-        val obj = ois.readObject()
+        var obj: Any? = null
+        try {
+            obj = ois.readObject()
+        }catch (e: InvalidClassException){
+            println("SYNC failed")
+        }
         when (obj) {
-            is Serializable -> return obj
-            else -> throw Exception()
+            is Serializable? -> return obj!!
+            else -> throw Exception("Something went wrong in syncer...")
         }
     }
 }

@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
 }
 
 class NetGame() : BasicGame("Now with network!") {
-    val net: Net
+    val net: Network
     val isHost: Boolean
     val gameName: String
     val nick: String
@@ -33,7 +33,8 @@ class NetGame() : BasicGame("Now with network!") {
         gameName = readLine()!!
         print("Nick?")
         nick = readLine()!!
-        net = Net("192.168.99.100:9092", gameName, isHost, nick, players)
+        net = Network("10.0.0.88:9092", gameName, isHost, nick, players)
+        //net = Network("192.168.99.100:9092", gameName, isHost, nick, players)
     }
 
     override fun init(gc: GameContainer) {}
@@ -43,9 +44,9 @@ class NetGame() : BasicGame("Now with network!") {
                 players[p.key] = Player()
             }
             net.doAction("begin", asList(""))
-            net.setGameState(players)
+            net.gameState = players
         } else if (net.getGameStarted()) {
-            val tmp = net.getGameState()
+            val tmp = net.gameState
             if (tmp is Players) players = tmp
             val acts = net.getActions()
             for (a in acts) {
@@ -54,13 +55,22 @@ class NetGame() : BasicGame("Now with network!") {
                     "stop" -> stopPlayer(players[a.sender]!!)
                     "color" -> players[a.sender]!!.color = Color(a.params[0].toInt(),
                             a.params[1].toInt(), a.params[2].toInt())
+                    "background" -> players.backround = Color(a.params[0].toInt(),
+                            a.params[1].toInt(), a.params[2].toInt())
+                    /*
+                    "pos" -> {
+                        players[a.sender]!!.x = a.params[0].toFloat()
+                        players[a.sender]!!.y = a.params[1].toFloat()
+                    }
+                    */
                 }
             }
             for (p in players) {
                 p.value.x += millis / 25f * p.value.velocity.x
                 p.value.y += millis / 25f * p.value.velocity.y
+//                if(p.key == nick)net.doAction("pos", asList("${p.value.x}", "${p.value.y}"))
             }
-            net.setGameState(players)
+            net.gameState = players
         }
     }
 
@@ -88,6 +98,12 @@ class NetGame() : BasicGame("Now with network!") {
             Input.KEY_ENTER -> {
                 if (isHost) net.startGame()
             }
+            Input.KEY_B -> {
+                players.backround = Color(rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
+                net.doAction("background", asList("${players.backround.red}",
+                        "${players.backround.green}",
+                        "${players.backround.blue}"))
+            }
         }
     }
 
@@ -108,6 +124,7 @@ class NetGame() : BasicGame("Now with network!") {
             }
         } else {
             for (p in players) {
+                g.background = players.backround
                 g.color = p.value.color
                 g.fillOval(p.value.x, p.value.y, 10f, 10f)
             }
@@ -138,4 +155,6 @@ class Player() : Serializable {
     var velocity = Vector2f(0f, 0f)
 }
 
-class Players() : HashMap<String, Player>(), Serializable
+class Players() : HashMap<String, Player>(), Serializable{
+    var backround = Color.black
+}

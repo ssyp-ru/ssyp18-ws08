@@ -7,12 +7,16 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.io.Serializable
 import java.util.*
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-class Net(private val ip: String, private val gameName: String, private val isHost: Boolean,
-          private val nick: String, gs: Serializable){
-    private val prod = Net.createProducer(ip)
+class Network(private val ip: String,
+              gameName: String,
+              private val isHost: Boolean,
+              private val nick: String,
+              gs: Serializable) {
+    private val prod = Network.createProducer(ip)
     private var lobby: NetLobby
     private var lobbyTopicName = ""
     private var actionsParser: NetActionsParser
@@ -20,37 +24,50 @@ class Net(private val ip: String, private val gameName: String, private val isHo
     private var gameStarted = false
     private val syncer: NetSync
     private var onliner: NetOnline? = null
+    private var playersLock = ReentrantLock()
+    private val actionsLock = ReentrantLock()
+
     init {
-        lobby = NetLobby(gameName, isHost, nick, ip, this, players)
+        lobby = NetLobby(gameName, isHost, nick, ip, this, players, playersLock)
         lobby.setDaemon(true)
         lobby.start()
         lobbyTopicName = createLobbyTopicName(gameName)
-        actionsParser = NetActionsParser(ip, gameName, players, nick)
+        actionsParser = NetActionsParser(ip, players, nick, actionsLock)
         actionsParser.setDaemon(true)
         syncer = NetSync(gs, isHost, ip, nick, gameName)
         syncer.setDaemon(true)
     }
-    fun getGameState():Serializable{
-        return syncer.getGameState()
-    }
-    fun setGameState(gs: Serializable){
-        syncer.setGameState(gs)
-    }
-    fun getActions(): ArrayList<NetAction>{
+
+    var gameState: Serializable
+        get() {
+            //
+            return syncer.gameState
+            //
+        }
+        set(gs: Serializable) {
+            //lock
+            syncer.gameState = gs
+            //unlock
+        }
+
+    fun getActions(): ArrayList<NetAction> {
         return actionsParser.actions()
     }
-    fun doAction(name: String, params: List<String>){
+
+    fun doAction(name: String, params: List<String>) {
         var toSend = ""
-        for (p in params){
+        for (p in params) {
             toSend += "$p|"
         }
-        prod.send(ProducerRecord("-PLAYER-${nick}", 0, name, toSend ))
+        prod.send(ProducerRecord("-PLAYER-$nick", 0, name, toSend))
     }
-    @Synchronized fun startGame(){
-        if(isHost){
-            prod.send(ProducerRecord(lobbyTopicName, Net.LOBBY, "state", "ready"))
+
+    @Synchronized
+    fun startGame() {
+        if (isHost) {
+            prod.send(ProducerRecord(lobbyTopicName, Network.LOBBY, "state", "ready"))
         }
-        while(!gameStarted){
+        while (!gameStarted) {
             print("")
         }
         actionsParser.start()
@@ -60,23 +77,28 @@ class Net(private val ip: String, private val gameName: String, private val isHo
         onliner!!.start()
     }
 
-    fun setGameStarted(){
+    fun setGameStarted() {
         gameStarted = true
     }
 
-    fun getGameStarted(): Boolean{
+    fun getGameStarted(): Boolean {
         return gameStarted
     }
 
-    fun getPlayers(): ArrayList<NetPlayer>{
-        return players
+    fun getPlayers(): ArrayList<NetPlayer> {
+        val toOut = ArrayList<NetPlayer>()
+        playersLock.lock()
+        for (p in players) toOut.add(p.copy())
+        playersLock.unlock()
+        return toOut
     }
 
-    fun getPlayersAsHashMap(): HashMap<String, NetPlayer>{
+    fun getPlayersAsHashMap(): HashMap<String, NetPlayer> {
         val toOut = HashMap<String, NetPlayer>()
-        for(i in 0..(players.size - 1)){
-            players[i].position = i
+        for (i in 0..(players.size - 1)) {
+            //players[i].position = i
             toOut[players[i].nick] = players[i].copy()
+            toOut[players[i].nick]!!.position=i
         }
         return toOut
     }
@@ -85,7 +107,7 @@ class Net(private val ip: String, private val gameName: String, private val isHo
         const val LOBBY = 0
         const val SYNC = 1
         const val ONLINE = 2
-        fun createConsumer(ip: String, gid: String): KafkaConsumer<String, String>{
+        fun createConsumer(ip: String, gid: String): KafkaConsumer<String, String> {
             val consProperties = Properties()
             consProperties.setProperty("bootstrap.servers", ip)
             consProperties.setProperty("key.deserializer", StringDeserializer::class.java.name)
@@ -93,22 +115,31 @@ class Net(private val ip: String, private val gameName: String, private val isHo
             consProperties.setProperty("enable.auto.commit", "true")
             consProperties.setProperty("auto.commit", "50")
             consProperties.setProperty("group.id", gid)
-            return  KafkaConsumer(consProperties)
+            return KafkaConsumer(consProperties)
         }
-        fun createProducer(ip: String): KafkaProducer<String, String>{
+
+        fun createProducer(ip: String): KafkaProducer<String, String> {
             val prodProperties = Properties()
             prodProperties.setProperty("bootstrap.servers", ip)
             prodProperties.setProperty("key.serializer", StringSerializer::class.java.name)
             prodProperties.setProperty("value.serializer", StringSerializer::class.java.name)
             prodProperties.setProperty("retries", "5")
             prodProperties.setProperty("acks", "1")
-            return  KafkaProducer(prodProperties)
+            return KafkaProducer(prodProperties)
         }
-        fun createLobbyTopicName(gameName: String): String{
+
+        fun createLobbyTopicName(gameName: String): String {
             return "-LOBBY-$gameName"
         }
-        fun createPlayerTopicName(nick: String): String{
+        /*fun createPlayerTopicName(nick: String): String{
             return "-PLAYER-$nick"
-        }
+        }*/
     }
+
 }
+
+/*enum class GamePartitions(val p: Int){
+    LOBBY (0),
+    SYNC(1),
+    ONLINE(2)
+}*/

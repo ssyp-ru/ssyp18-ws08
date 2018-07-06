@@ -6,29 +6,34 @@ import org.apache.kafka.common.TopicPartition
 import java.util.*
 import java.util.Arrays.asList
 
-class NetOnline(private val nick: String, ip: String, private val gameTopic: String,
-                private val players: HashMap<String, NetPlayer>, private val sync: NetSync) :
+class NetOnline(private val nick: String,
+                            ip: String,
+                private val gameTopic: String,
+                private val players: HashMap<String, NetPlayer>,
+                private val sync: NetSync):
         Thread("Onliner") {
 
-    private val cons = Net.createConsumer(ip, "$nick-ONLINE")
-    private val prod = Net.createProducer(ip)
+    private val cons = Network.createConsumer(ip, "$nick-ONLINE")
+    private val prod = Network.createProducer(ip)
     private var host = 0
 
-    var pi: Array<String> = arrayOf()
+    private var pi: Array<String> = arrayOf()
 
     init {
-        cons.assign(asList(TopicPartition(gameTopic, Net.ONLINE)))
-        cons.seekToEnd(asList(TopicPartition(gameTopic, Net.ONLINE)))
+        cons.assign(asList(TopicPartition(gameTopic, Network.ONLINE)))
+        cons.seekToEnd(asList(TopicPartition(gameTopic, Network.ONLINE)))
     }
 
     override fun run() {
         var records: ConsumerRecords<String, String>
         var prevDate = Date()
-        var millis: Long = 0
-        pi = Array<String>(players.size, { _ -> "" })
+        var millis: Long
+        pi = Array(players.size, { _ -> "" })
         for (p in players) {
             pi[p.value.position] = p.value.nick
+            println(p.value.position)
         }
+        for(i in 0..(pi.size - 1))println(players[pi[i]])
 
         while (true) {
             records = cons.poll(30)
@@ -53,7 +58,7 @@ class NetOnline(private val nick: String, ip: String, private val gameTopic: Str
             if (!players[pi[host]]!!.isOnline) {
                 newHost()
             }
-            prod.send(ProducerRecord(gameTopic, Net.ONLINE, "alive", nick))
+            prod.send(ProducerRecord(gameTopic, Network.ONLINE, "alive", nick))
         }
     }
 
@@ -63,7 +68,7 @@ class NetOnline(private val nick: String, ip: String, private val gameTopic: Str
             host = i
             break
         }
-        prod.send(ProducerRecord(gameTopic, Net.ONLINE, "newHost", players[pi[host]]!!.nick))
+        prod.send(ProducerRecord(gameTopic, Network.ONLINE, "newHost", players[pi[host]]!!.nick))
         if (nick == players[pi[host]]!!.nick) sync.setHost(true)
     }
 }
