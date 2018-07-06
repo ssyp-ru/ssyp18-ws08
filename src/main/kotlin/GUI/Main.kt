@@ -1,6 +1,7 @@
-package New2DGame
+package GUI
 
 import org.newdawn.slick.AppGameContainer
+import org.newdawn.slick.GameContainer
 import org.newdawn.slick.SlickException
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -14,6 +15,4 @@ fun main(args: Array<String>) {
     } catch (ex: SlickException) {
         Logger.getLogger(SimpleSlickGame::class.java.name).log(Level.SEVERE, null, ex)
     }
-
-
 }
