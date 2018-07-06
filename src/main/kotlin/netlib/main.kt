@@ -33,8 +33,9 @@ class NetGame() : BasicGame("Now with network!") {
         gameName = readLine()!!
         print("Nick?")
         nick = readLine()!!
-        //net = Network("10.0.0.88:9092", gameName, isHost, nick, players)
-        net = Network("192.168.99.100:9092", gameName, isHost, nick, players)
+        net = Network("10.0.0.88:9092", gameName, isHost, nick, players)
+
+        //net = Network("192.168.99.100:9092", gameName, isHost, nick, players)
     }
 
     override fun init(gc: GameContainer) {}

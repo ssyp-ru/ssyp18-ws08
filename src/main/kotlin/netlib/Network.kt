@@ -124,7 +124,7 @@ class Network(private val ip: String,
             prodProperties.setProperty("key.serializer", StringSerializer::class.java.name)
             prodProperties.setProperty("value.serializer", StringSerializer::class.java.name)
             prodProperties.setProperty("retries", "5")
-            prodProperties.setProperty("acks", "1")
+            prodProperties.setProperty("acks", "all")
             return KafkaProducer(prodProperties)
         }
 

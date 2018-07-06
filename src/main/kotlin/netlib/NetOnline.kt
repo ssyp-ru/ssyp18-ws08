@@ -23,7 +23,6 @@ class NetOnline(private val nick: String,
         cons.assign(asList(TopicPartition(gameTopic, Network.ONLINE)))
         cons.seekToEnd(asList(TopicPartition(gameTopic, Network.ONLINE)))
     }
-
     override fun run() {
         var records: ConsumerRecords<String, String>
         var prevDate = Date()
@@ -44,7 +43,8 @@ class NetOnline(private val nick: String,
                         players[r.value()]!!.onlineTimer = 1000
                     }
                     "newHost" -> {
-                        if (r.value() != nick) sync.setHost(false)
+                        sync.setHost(r.value() == nick)
+                        host = pi.indexOf(r.value())
                     }
                 }
             }
@@ -52,13 +52,14 @@ class NetOnline(private val nick: String,
             prevDate = Date()
 
             for (p in players) {
-                p.value.onlineTimer = p.value.onlineTimer - millis
-                p.value.isOnline = p.value.onlineTimer > 0
+                p.value.onlineTimer -= millis
+                p.value.isOnline = (p.value.onlineTimer > 0)
             }
+
             if (!players[pi[host]]!!.isOnline) {
                 newHost()
             }
-            if(players[pi[host]]!!.onlineTimer < 730) {
+            if(players[nick]!!.onlineTimer < 850) {
                 prod.send(ProducerRecord(gameTopic, Network.ONLINE, "alive", nick))
             }
         }
