@@ -1,18 +1,57 @@
 package Game
 
 import org.newdawn.slick.*
+import org.newdawn.slick.geom.Rectangle
 import java.awt.MouseInfo
 import java.util.*
 import org.newdawn.slick.geom.Vector2f
+import org.newdawn.slick.tiled.TiledMap
 
 class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
+    private lateinit var map: TiledMap
+    private lateinit var blockedWalk: Array<Array<Boolean>>
+    private lateinit var blockedFire: Array<Array<Boolean>>
+    private lateinit var blocksWalk: ArrayList<Rectangle>
+    private lateinit var blocksFire: ArrayList<Rectangle>
+    private var tileID: Int = 0
+    private val layerWalk: Int = 0
+    private val layerFire: Int = 1
+    private lateinit var value: String
+    private var mapHeight: Int = 0
+    private var mapWidth: Int = 0
+    private var tileHeight: Int = 0
+    private var tileWidth: Int = 0
     var arrayPlayers = ArrayList<Player>()
+    private lateinit var camera: Camera
     override fun init(gc: GameContainer) {
         gc.setVSync(true)
 
         //получаем начальные данные
 
+        map = TiledMap("res/map/FirstFowlMap.TMX")
+        mapHeight = map.height * map.tileHeight
+        mapWidth = map.width * map.tileWidth
+        tileHeight = map.tileHeight
+        tileWidth = map.tileWidth
+        for(i in 0..99){
+            for(j in 0..99){
+                tileID = map.getTileId(i, j, layerWalk)
+                value = map.getTileProperty(tileID, "blocked", "false")
+                if(value.equals("true")){
+                    blockedWalk[i][j] = true
+                    blocksWalk.add(Rectangle(i * tileWidth.toFloat(), j * tileHeight.toFloat(),
+                            tileWidth.toFloat(), tileHeight.toFloat()))
+                }
+                tileID = map.getTileId(i, j, layerFire)
+                value = map.getTileProperty(tileID, "blocked", "false")
+                if(value.equals("true")){
+                    blockedFire[i][j] = true
+                    blocksFire.add(Rectangle(i * tileWidth.toFloat(), j * tileHeight.toFloat(),
+                            tileWidth.toFloat(), tileHeight.toFloat()))
+                }
+            }
+        }
         arrayPlayers.add(Player(300F, 360F, 5, false, false, false, false,
                 false, Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
                         MouseInfo.getPointerInfo().getLocation().getY().toFloat() - 384F), 1))
@@ -20,6 +59,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             arrayPlayers.add(Player((15 + i * 60F), (15 + i * 60F), 5, false, false, false,
                     false, false, Vector2f(1F, 1F)))
         }
+        camera = Camera(map, mapWidth, mapHeight)
     }
 
     override fun update(gc: GameContainer, i: Int) {
@@ -68,9 +108,9 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
         val gun = person.weapon
         gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
-                - person.x - 20F,
+                - gc.width - 20F,
                 MouseInfo.getPointerInfo().getLocation().getY().toFloat()
-                        - person.y - 20F)
+                        - gc.height - 20F)
     }
 
     private fun allMove(gc:GameContainer){
@@ -85,6 +125,9 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     override fun render(gc: GameContainer, g: Graphics) {
+        camera.translate(g, arrayPlayers[0], gc)
+        g.background = Color.blue
+        map.render(0, 0)
         for (i in arrayPlayers){
             i.weapon.draw(g)
             i.draw(g)

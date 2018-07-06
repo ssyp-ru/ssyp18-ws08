@@ -40,20 +40,7 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         shot= false
     }
     fun hit(balls:ArrayList<Player>, i:Int) {
-        when {
-            x < 0 -> {
-                x = 0F
-            }
-            x > (1326) -> {
-                x = 1326F
-            }
-            y < 0 -> {
-                y = 0F
-            }
-            y > (723) -> {
-                y = 723F
-            }
-        }
+
         for (k in (i + 1)..(balls.size - 1)){
             val dis = distance(x, y, balls[k].x, balls[k].y)
             if (dis < 40) {
