@@ -2,6 +2,7 @@ package Game
 
 import org.newdawn.slick.GameContainer
 import org.newdawn.slick.Input
+import org.newdawn.slick.geom.Rectangle
 import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import java.util.*
@@ -40,20 +41,33 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         shot= false
     }
     fun hit(balls:ArrayList<Player>, i:Int) {
-        when {
-            x < 0 -> {
-                x = 0F
-            }
-            x > (1326) -> {
-                x = 1326F
-            }
-            y < 0 -> {
-                y = 0F
-            }
-            y > (723) -> {
-                y = 723F
+
+        /*for (k in 0..(blocksWalk.size - 1)){
+            if((((blocksWalk[k].x + blocksWalk[k].width) < (x - 20)) || (blocksWalk[k].x) > (x + 20)) &&
+                    (((blocksWalk[k].y + blocksWalk[k].height) < (y - 20)) || (blocksWalk[k].y) > (y + 20))){
+                when{
+                    ((blocksWalk[k].x + blocksWalk[k].width) < (x - 20)) -> x = blocksWalk[k].x +
+                            blocksWalk[k].width + 20
+                    ((blocksWalk[k].x) > (x + 20)) -> blocksWalk[k].x - 20
+                    ((blocksWalk[k].y + blocksWalk[k].height) < (y - 20)) -> y = blocksWalk[k].y +
+                            blocksWalk[k].height + 20
+                    ((blocksWalk[k].y) > (y + 20)) -> blocksWalk[k].y - 20
+                }
             }
         }
+        for (k in 0..(blocksFire.size - 1)){
+            if((((blocksFire[k].x + blocksFire[k].width) < (x - 20)) || (blocksFire[k].x) > (x + 20)) &&
+                    (((blocksFire[k].y + blocksFire[k].height) < (y - 20)) || (blocksFire[k].y) > (y + 20))){
+                when{
+                    ((blocksFire[k].x + blocksFire[k].width) < (x - 20)) -> x = blocksFire[k].x +
+                            blocksFire[k].width + 20
+                    ((blocksFire[k].x) > (x + 20)) -> blocksFire[k].x - 20
+                    ((blocksFire[k].y + blocksFire[k].height) < (y - 20)) -> y = blocksFire[k].y +
+                            blocksFire[k].height + 20
+                    ((blocksFire[k].y) > (y + 20)) -> blocksFire[k].y - 20
+                }
+            }
+        }*/
         for (k in (i + 1)..(balls.size - 1)){
             val dis = distance(x, y, balls[k].x, balls[k].y)
             if (dis < 40) {
