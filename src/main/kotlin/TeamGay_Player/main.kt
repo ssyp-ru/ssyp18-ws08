@@ -6,8 +6,8 @@ import org.newdawn.slick.geom.Vector2f
 import java.util.logging.Level
 import java.util.logging.Logger
 
-fun ifIn(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
-   return when {
+fun inside(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
+    return when {
         y1 in x1..x2 -> true
         y2 in x1..x2 -> true
         x1 in y1..y2 -> true
