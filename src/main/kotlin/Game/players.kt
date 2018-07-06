@@ -7,9 +7,10 @@ import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.math.*
 
-class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, var goDown:Boolean = false,
+class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:Boolean = false, var goDown:Boolean = false,
              var goLeft:Boolean = false, var goRight:Boolean = false, var shot:Boolean = false, val mouseVec: Vector2f,
              val IDWeapon:Int = 0): Serializable {
     var weapon = when (IDWeapon){
@@ -25,7 +26,7 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         g.color = colorPlayer
         g.fillOval(x, y, 40F, 40F)
     }
-    fun controlPlayer(gc:GameContainer, arrayPlayers:ArrayList<Player>, i:Player){
+    fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player){
         val tempForSpeed = 5F
         val movement = Vector2f(0F, 0F)
         movement.x += (if (goRight) 1F else 0F) + (if (goLeft) -1F else 0F)

@@ -10,7 +10,7 @@ import java.awt.MouseInfo
 class Camera(map: TiledMap, private val mapWidth: Int, private val mapHeight: Int) {
     private var x: Int = 0
     private var y: Int = 0
-    private var viewPort = Rectangle(0f, 0f, 1920f, 1080f)
+    private var viewPort = Rectangle(0f, 0f, 640f, 480f)
     private var coord = MouseInfo.getPointerInfo().location
 
     init {
