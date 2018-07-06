@@ -24,6 +24,11 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     override fun update(gc: GameContainer, i: Int) {
 
+
+
+//        for (i in 1..arrayPlayers.size-1){
+//
+//        }
         //получаем экшины в больших количествах и начнаем с ними что-то делать
 
         myControls(gc)
@@ -52,14 +57,11 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private  fun myControls(gc:GameContainer){
         val person = arrayPlayers[0]
         val input = gc.input
-        when{
-            input.isKeyDown(Input.KEY_D) -> person.goRight = true
-            input.isKeyDown(Input.KEY_A) -> person.goLeft = true
-        }
-        when {
-            input.isKeyDown(Input.KEY_W) -> person.goUp = true
-            input.isKeyDown(Input.KEY_S) -> person.goDown = true
-        }
+        if (input.isKeyDown(Input.KEY_D)) person.goRight = true
+        if (input.isKeyDown(Input.KEY_A)) person.goLeft = true
+        if (input.isKeyDown(Input.KEY_W)) person.goUp = true
+        if (input.isKeyDown(Input.KEY_S)) person.goDown = true
+
         when {
             input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> person.shot = true
         }
