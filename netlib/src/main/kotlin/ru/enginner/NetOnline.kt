@@ -7,10 +7,10 @@ import java.util.*
 import java.util.Arrays.asList
 
 class NetOnline(private val nick: String,
-                            ip: String,
+                ip: String,
                 private val gameTopic: String,
                 private val players: HashMap<String, NetPlayer>,
-                private val sync: NetSync):
+                private val sync: NetSync) :
         Thread("Onliner") {
 
     private val cons = Network.createConsumer(ip, "$nick-ONLINE")
@@ -33,7 +33,7 @@ class NetOnline(private val nick: String,
             pi[p.value.position] = p.value.nick
             println(p.value.position)
         }
-        for(i in 0..(pi.size - 1))println(players[pi[i]])
+        for (i in 0..(pi.size - 1)) println(players[pi[i]])
 
         while (true) {
             records = cons.poll(30)
@@ -58,7 +58,9 @@ class NetOnline(private val nick: String,
             if (!players[pi[host]]!!.isOnline) {
                 newHost()
             }
-            prod.send(ProducerRecord(gameTopic, Network.ONLINE, "alive", nick))
+            if(players[pi[host]]!!.onlineTimer < 730) {
+                prod.send(ProducerRecord(gameTopic, Network.ONLINE, "alive", nick))
+            }
         }
     }
 

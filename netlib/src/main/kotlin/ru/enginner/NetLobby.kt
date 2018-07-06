@@ -8,10 +8,10 @@ import java.util.concurrent.locks.ReentrantLock
 class NetLobby(private val gameName: String,
                private val isHost: Boolean,
                private val nick: String,
-                           ip: String,
+               ip: String,
                private val net: Network,
                private val players: ArrayList<NetPlayer>,
-               private val playersLock: ReentrantLock):
+               private val playersLock: ReentrantLock) :
         Thread("Lobby") {
     private val cons = Network.createConsumer(ip, nick)
     private val prod = Network.createProducer(ip)
@@ -20,12 +20,13 @@ class NetLobby(private val gameName: String,
     private var isGameReady = false
 
     override fun run() {
+        cons.assign(asList(TopicPartition(topicName, Network.LOBBY)))
+        cons.seekToEnd(asList(TopicPartition(topicName, Network.LOBBY)))
         if (isHost) {
             if (!adm.lisTopics().contains(topicName)) adm.createTopic(topicName, 3)
             prod.send(ProducerRecord(topicName, Network.LOBBY, "newGame", gameName)).get()
         }
         adm.createTopic("-PLAYER-$nick", 1)
-        cons.assign(asList(TopicPartition(topicName, Network.LOBBY)))
         prod.send(ProducerRecord(topicName, Network.LOBBY, "player", nick)).get()
         waitPlayers()
         net.setGameStarted()

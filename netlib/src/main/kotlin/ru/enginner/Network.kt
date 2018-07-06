@@ -98,7 +98,7 @@ class Network(private val ip: String,
         for (i in 0..(players.size - 1)) {
             //players[i].position = i
             toOut[players[i].nick] = players[i].copy()
-            toOut[players[i].nick]!!.position=i
+            toOut[players[i].nick]!!.position = i
         }
         return toOut
     }

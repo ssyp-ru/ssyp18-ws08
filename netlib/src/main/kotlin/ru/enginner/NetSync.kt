@@ -12,20 +12,21 @@ import java.io.*
 import java.util.*
 import java.util.Arrays.asList
 
-class NetSync(            gs: Serializable,
+class NetSync(gs: Serializable,
               private var isHost: Boolean,
-                          ip: String, nick: String,
-              gameName: String):
+              ip: String, nick: String,
+              gameName: String) :
         Thread("Syncer") {
     private val prod: KafkaProducer<String, ByteArray>
     private val cons: KafkaConsumer<String, ByteArray>
     private val topicName = "-LOBBY-$gameName"
     private var gsarr: ByteArray
     var gameState: Serializable = gs
-        set(gs: Serializable){
-            if(isHost)gsarr = serialize(gs)
+        set(gs: Serializable) {
+            if (isHost) gsarr = serialize(gs)
             field = gs
         }
+
     init {
         val consProperties = Properties()
         consProperties.setProperty("bootstrap.servers", ip)
@@ -45,6 +46,7 @@ class NetSync(            gs: Serializable,
         prod = KafkaProducer(prodProperties)
 
         cons.assign(asList(TopicPartition(topicName, Network.SYNC)))
+        cons.seekToEnd(asList(TopicPartition(topicName, Network.SYNC)))
         //gameState = gs
         gsarr = serialize(gs)
 
@@ -55,8 +57,6 @@ class NetSync(            gs: Serializable,
         isHost = b
         println(if (isHost) "ama host now" else "ama bomzh now")
     }
-
-
 
 
     /*fun setGameState(st: Serializable) {
@@ -72,7 +72,7 @@ class NetSync(            gs: Serializable,
             if (isHost) {
                 prod.send(ProducerRecord(topicName, Network.SYNC, "sync", gsarr))
                 //println("send sync")
-                Thread.sleep(950)
+                Thread.sleep(2950)
             } else {
                 val records = cons.poll(50)
                 for (r in records) {
@@ -101,12 +101,16 @@ class NetSync(            gs: Serializable,
         var obj: Any? = null
         try {
             obj = ois.readObject()
-        }catch (e: InvalidClassException){
+        } catch (e: InvalidClassException) {
             println("SYNC failed")
         }
-        when (obj) {
-            is Serializable? -> return obj!!
-            else -> throw Exception("Something went wrong in syncer...")
+        try {
+            when (obj) {
+                is Serializable -> return obj
+                else -> throw Exception()
+            }
+        }catch(e: Exception){
+            return gameState
         }
     }
 }

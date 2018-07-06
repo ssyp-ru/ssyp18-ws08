@@ -28,6 +28,7 @@ class NetActionsParser(ip: String,
             listPartitions.add(TopicPartition("-PLAYER-" + p.nick, 0))
         }
         cons.assign(listPartitions)
+        cons.seekToEnd(listPartitions)
         while (true) {
             val records = cons.poll(10)
             if (records.isEmpty) continue
