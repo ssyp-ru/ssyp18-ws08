@@ -47,11 +47,13 @@ abstract class Meelee(val attackRange:Float, val attackAngle:Float, val cooldown
         return inside((-meCtg2aVecNormal), (meCtg2aVecNormal),
                 enemyX - 20F, enemyX + 20F) &&
                 inside((20F), (20F * (attackRange + 2)) / 2,
-                enemyY - 20F, enemyY + 20F)
+                        enemyY - 20F, enemyY + 20F)
     }
 }
 
 class Knife(override var playerX: Float, override var playerY: Float, override var mouseVec:Vector2f)
-    :Meelee(1F, 90F, 30F, 1, 0) {}
+    : Meelee(1F, 90F, 30F, 1, 0) {}
 class Rapier(override var playerX: Float, override var playerY: Float, override var mouseVec:Vector2f)
-    :Meelee(100F, 0F, 15F, 1, 1) {}
+    : Meelee(5F, 15F, 60F, 1, 1) {}
+class DeathPuls(override var playerX: Float, override var playerY: Float, override var mouseVec:Vector2f)
+    : Meelee(1000F, 0.1F, 180F, 1, 2) {}

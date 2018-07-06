@@ -13,12 +13,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
         //получаем начальные данные
 
-        arrayPlayers.add(Player(300F, 360F, 5, 5F, false,
-                Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
+        arrayPlayers.add(Player(300F, 360F, 5, false, false, false, false,
+                false, Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
                         MouseInfo.getPointerInfo().getLocation().getY().toFloat() - 384F), 1))
         for (i in 0..4){
-            arrayPlayers.add(Player((15 + i * 60F) , (15 + i * 60F), 20F, 5, 5F,
-                    false, Vector2f(1F, 1F)))
+            arrayPlayers.add(Player((15 + i * 60F), (15 + i * 60F), 5, false, false, false,
+                    false, false, Vector2f(1F, 1F)))
         }
     }
 
@@ -26,18 +26,14 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
         //получаем экшины в больших количествах и начнаем с ними что-то делать
 
+        myControls(gc)
         allMove(gc)
-
-
-        val gun = arrayPlayers[0].weapon
-        gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
-                - arrayPlayers[0].x - arrayPlayers[0].R,
-                MouseInfo.getPointerInfo().getLocation().getY().toFloat()
-                        - arrayPlayers[0].y - arrayPlayers[0].R)
-
-        gun.cooldownCounter += if (gun.cooldownCounter <
-                gun.cooldown) 1 else 0
-
+        var gun:Meelee
+        for (i in arrayPlayers) {
+            gun = i.weapon
+            gun.cooldownCounter += if (gun.cooldownCounter <
+                    gun.cooldown) 1 else 0
+        }
     }
 
     private fun deathCheck(){
@@ -51,6 +47,28 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                     break
                 }
         }
+    }
+
+    private  fun myControls(gc:GameContainer){
+        val person = arrayPlayers[0]
+        val input = gc.input
+        when{
+            input.isKeyDown(Input.KEY_D) -> person.goRight = true
+            input.isKeyDown(Input.KEY_A) -> person.goLeft = true
+        }
+        when {
+            input.isKeyDown(Input.KEY_W) -> person.goUp = true
+            input.isKeyDown(Input.KEY_S) -> person.goDown = true
+        }
+        when {
+            input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> person.shot = true
+        }
+
+        val gun = person.weapon
+        gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
+                - person.x + 20F,
+                MouseInfo.getPointerInfo().getLocation().getY().toFloat()
+                        - person.y + 20F)
     }
 
     private fun allMove(gc:GameContainer){

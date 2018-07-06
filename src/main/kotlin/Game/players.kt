@@ -8,8 +8,9 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
 
-class Player(var x: Float, var y: Float, var HP:Int, val speed:Float,
-             var hit:Boolean = false, val mouseVec: Vector2f, val IDWeapon:Int = 0): Serializable {
+class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, var goDown:Boolean = false,
+             var goLeft:Boolean = false, var goRight:Boolean = false, var shot:Boolean = false, val mouseVec: Vector2f,
+             val IDWeapon:Int = 0): Serializable {
     var weapon = when (IDWeapon){
         1 -> Rapier(x, y, mouseVec)
 //        101 -> Pistol(x, y, mouseVec, R)
@@ -24,22 +25,25 @@ class Player(var x: Float, var y: Float, var HP:Int, val speed:Float,
         g.fillOval(x, y, 40F, 40F)
     }
     fun controlPlayer(gc:GameContainer, arrayPlayers:ArrayList<Player>){
-
-        val input = gc.input
-        val tempForSpeed = speed
+        val tempForSpeed = 5F
         x += when{
-            input.isKeyDown(Input.KEY_D) -> tempForSpeed
-            input.isKeyDown(Input.KEY_A) -> -tempForSpeed
+            goRight -> tempForSpeed
+            goLeft -> -tempForSpeed
             else -> 0F
         }
         y += when {
-            input.isKeyDown(Input.KEY_W) -> -tempForSpeed
-            input.isKeyDown(Input.KEY_S) -> tempForSpeed
+            goUp -> -tempForSpeed
+            goDown -> tempForSpeed
             else -> 0F
         }
         when {
-            input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> weapon.attack(arrayPlayers)
+            shot -> weapon.attack(arrayPlayers)
         }
+        goDown= false
+        goUp= false
+        goRight= false
+        goLeft= false
+        shot= false
     }
     fun hit(balls:ArrayList<Player>, i:Int) {
         when {
