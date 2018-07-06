@@ -66,9 +66,9 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
         val gun = person.weapon
         gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
-                - person.x + 20F,
+                - person.x - 20F,
                 MouseInfo.getPointerInfo().getLocation().getY().toFloat()
-                        - person.y + 20F)
+                        - person.y - 20F)
     }
 
     private fun allMove(gc:GameContainer){
