@@ -7,18 +7,22 @@ import org.newdawn.slick.geom.Vector2f
 
 class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
-    var arrayPlayers = ArrayList<Player>()
+    var arrayEnemy = ArrayList<Player>()
+    var arrAllPlayers = ArrayList<Player>()
+
+    var gamer = Player(300F, 360F, 5, false, false, false, false,
+            false, Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
+            MouseInfo.getPointerInfo().getLocation().getY().toFloat() - 384F), 1)
     override fun init(gc: GameContainer) {
         gc.setVSync(true)
 
         //получаем начальные данные
 
-        arrayPlayers.add(Player(300F, 360F, 5, false, false, false, false,
-                false, Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
-                        MouseInfo.getPointerInfo().getLocation().getY().toFloat() - 384F), 1))
         for (i in 0..4){
-            arrayPlayers.add(Player((15 + i * 60F), (15 + i * 60F), 5, false, false, false,
+            arrayEnemy.add(Player((15 + i * 60F), (15 + i * 60F), 5, false, false, false,
                     false, false, Vector2f(1F, 1F)))
+            for (i in arrayEnemy) arrAllPlayers.add(i)
+            arrAllPlayers.add(gamer)
         }
     }
 
@@ -26,15 +30,19 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
 
 
-//        for (i in 1..arrayPlayers.size-1){
-//
-//        }
+        for (i in arrayEnemy){
+            i.goLeft = (Random().nextInt(2) == 1)
+            i.goRight = (Random().nextInt(2) == 1)
+            i.goUp = (Random().nextInt(2) == 1)
+            i.goDown = (Random().nextInt(2) == 1)
+            i.shot = (Random().nextInt(2) == 1)
+        }
         //получаем экшины в больших количествах и начнаем с ними что-то делать
 
         myControls(gc)
         allMove(gc)
         var gun:Meelee
-        for (i in arrayPlayers) {
+        for (i in arrAllPlayers) {
             gun = i.weapon
             gun.cooldownCounter += if (gun.cooldownCounter <
                     gun.cooldown) 1 else 0
@@ -42,12 +50,14 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     private fun deathCheck(){
+        if (gamer.HP <= 0) arrAllPlayers.remove(gamer)
         var flag = true
         while (flag){
             flag = false
-            for (i in arrayPlayers)
+            for (i in arrAllPlayers)
                 if (i.HP <= 0) {
-                    arrayPlayers.remove(i)
+                    arrAllPlayers.remove(i)
+                    arrayEnemy.remove(i)
                     flag = true
                     break
                 }
@@ -55,37 +65,36 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     private  fun myControls(gc:GameContainer){
-        val person = arrayPlayers[0]
         val input = gc.input
-        if (input.isKeyDown(Input.KEY_D)) person.goRight = true
-        if (input.isKeyDown(Input.KEY_A)) person.goLeft = true
-        if (input.isKeyDown(Input.KEY_W)) person.goUp = true
-        if (input.isKeyDown(Input.KEY_S)) person.goDown = true
+        if (input.isKeyDown(Input.KEY_D)) gamer.goRight = true
+        if (input.isKeyDown(Input.KEY_A)) gamer.goLeft = true
+        if (input.isKeyDown(Input.KEY_W)) gamer.goUp = true
+        if (input.isKeyDown(Input.KEY_S)) gamer.goDown = true
 
         when {
-            input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> person.shot = true
+            input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> gamer.shot = true
         }
 
-        val gun = person.weapon
+        val gun = gamer.weapon
         gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
-                - person.x - 20F,
+                - gamer.x - 20F,
                 MouseInfo.getPointerInfo().getLocation().getY().toFloat()
-                        - person.y - 20F)
+                        - gamer.y - 20F)
     }
 
     private fun allMove(gc:GameContainer){
-        for (i in arrayPlayers)
-            i.controlPlayer(gc, arrayPlayers)
+        for (i in arrAllPlayers)
+            i.controlPlayer(gc, arrAllPlayers, i)
 
         deathCheck()
 
-        for(i in 0..(arrayPlayers.size - 1)){
-            arrayPlayers[i].hit(arrayPlayers, i)
+        for(i in 0..(arrAllPlayers.size - 1)){
+            arrAllPlayers[i].hit(arrAllPlayers, i)
         }
     }
 
     override fun render(gc: GameContainer, g: Graphics) {
-        for (i in arrayPlayers){
+        for (i in arrAllPlayers){
             i.weapon.draw(g)
             i.draw(g)
         }

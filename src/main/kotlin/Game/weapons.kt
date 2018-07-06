@@ -27,11 +27,11 @@ abstract class Meelee(val attackRange:Float, val attackAngle:Float, val cooldown
         }
     }
 
-    fun attack(arrPlayers:ArrayList<Player>){
+    fun attack(arrPlayers:ArrayList<Player>, k:Player){
         if (cooldownCounter == cooldown){
             cooldownCounter = 0F
-            for (i in 1..arrPlayers.size - 1){
-                if (hitScan(arrPlayers[i])) arrPlayers[i].HP -= damage
+            for (i in arrPlayers){
+                if (hitScan(i) && i != k) i.HP -= damage
             }
         }
     }

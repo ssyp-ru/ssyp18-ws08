@@ -24,7 +24,7 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         g.color = colorPlayer
         g.fillOval(x, y, 40F, 40F)
     }
-    fun controlPlayer(gc:GameContainer, arrayPlayers:ArrayList<Player>){
+    fun controlPlayer(gc:GameContainer, arrayPlayers:ArrayList<Player>, i:Player){
         val tempForSpeed = 5F
         val movement = Vector2f(0F, 0F)
         movement.x += (if (goRight) 1F else 0F) + (if (goLeft) -1F else 0F)
@@ -32,7 +32,7 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         movement.normalise().scale(tempForSpeed)
         x += movement.x
         y += movement.y
-        if (shot) weapon.attack(arrayPlayers)
+        if (shot && HP>0) weapon.attack(arrayPlayers, i)
         goDown= false
         goUp= false
         goRight= false
