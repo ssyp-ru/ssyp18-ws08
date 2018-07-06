@@ -1,8 +1,7 @@
-package TeamGay_Player
+package Game
 
 import org.newdawn.slick.AppGameContainer
 import org.newdawn.slick.SlickException
-import org.newdawn.slick.geom.Vector2f
 import java.util.logging.Level
 import java.util.logging.Logger
 
