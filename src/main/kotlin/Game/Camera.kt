@@ -23,7 +23,7 @@ class Camera(map: TiledMap, private val mapWidth: Int, private val mapHeight: In
         /*x = gc.screenWidth / 2 - hero.x.toInt() - 60
         y = gc.screenHeight / 2 - hero.y.toInt() - 40*/
         //println(gc.screenWidth)
-        g.drawString("${gc.width}", 10f, 50f)
+       //g.drawString("${gc.width}", 10f, 50f)
         x = (gc.width / 2) - hero.x.toInt() - radius
         y = (gc.height / 2) - hero.y.toInt() - radius
 

@@ -18,9 +18,7 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
 //        101 -> Pistol(x, y, mouseVec, R)
         else -> Knife(x, y, mouseVec)
     }
-    var colorPlayer = org.newdawn.slick.Color(Random().nextInt(255) / 255F,
-            Random().nextInt(255) / 255F,
-            Random().nextInt(255) / 255F)
+    var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
 
     fun draw(g: org.newdawn.slick.Graphics) {
         g.color = colorPlayer
