@@ -19,6 +19,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
+    private lateinit var color: Color
     private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
     private var tileID: Int = 0
     private lateinit var value: String
@@ -55,6 +56,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         tileHeight = map.tileHeight
         tileWidth = map.tileWidth
         comic = TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 20), false)
+        color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
                 cells[i][j] = Cell(i * 32, j * 32, 0)
@@ -74,7 +76,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(800f, 100f, 5, p.key, mouseVec = Vector2f(1f, 1f))
+                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f))
             }
             playersCreated = true
             for(p in gs.players){
@@ -192,7 +194,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             g.background = Color.blue
             map.render(0, 0)
             g.font = comic
-            g.color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
+            g.color = color
             g.drawString("SSYP 20!8", 10f, 10f)
             for (i in gs.players) {
                 i.value.weapon.draw(g)
