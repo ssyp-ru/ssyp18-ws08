@@ -99,15 +99,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 try {
                     when (a.name) {
                     /**/
-                        "move" -> {
-                            when (a.params[0]) {
-                                "right" -> gs.players[a.sender]!!.goRight = true
-                                "left" -> gs.players[a.sender]!!.goLeft = true
-                                "up" -> gs.players[a.sender]!!.goUp = true
-                                "down" -> gs.players[a.sender]!!.goDown = true
-                            }
-                            allMove(gc)
-                        }
+                        "move" -> gs.players[a.sender]!!.velocity.add(Vector2f(a.params[0].toFloat(),
+                                a.params[1].toFloat()))
                         "shot" -> gs.players[a.sender]!!.shot = true
                         "direction" -> gs.players[a.sender]!!.weapon.mouseVec = Vector2f(a.params[0].toFloat(),
                                 a.params[1].toFloat())
@@ -116,7 +109,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                     println("${a.sender} alredy dead, skipping...")
                 }
             }
-            if(gs.players.containsKey(nick) and !gs.players[nick]!!.isDead)myControls(gc)
+            if(gs.players.containsKey(nick))myControls(gc)
             allMove(gc)
             var gun: Meelee
             for (i in gs.players) {
@@ -144,23 +137,22 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     private fun myControls(gc: GameContainer) {
         //println(playersCreated)
+        if(gs.players[nick]!!.isDead)return
         val input = gc.input
         if (input.isKeyDown(Input.KEY_D)) {
-            gs.players[nick]!!.goRight = true
-            net.doAction("move", asList("right"))
+            gs.players[nick]!!.velocity.x += 1f
         }
         if (input.isKeyDown(Input.KEY_A)) {
-            gs.players[nick]!!.goLeft = true
-            net.doAction("move", asList("left"))
+            gs.players[nick]!!.velocity.x -= 1f
         }
         if (input.isKeyDown(Input.KEY_W)) {
-            net.doAction("move", asList("up"))
-            gs.players[nick]!!.goUp = true
+            gs.players[nick]!!.velocity.y -= 1f
         }
         if (input.isKeyDown(Input.KEY_S)) {
-            net.doAction("move", asList("down"))
-            gs.players[nick]!!.goDown = true
+            gs.players[nick]!!.velocity.y += 1f
         }
+        gs.players[nick]!!.velocity = gs.players[nick]!!.velocity.normalise()
+        net.doAction("move", asList("${gs.players[nick]!!.velocity.x}", "${gs.players[nick]!!.velocity.y}"))
 
         when {
             input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> {

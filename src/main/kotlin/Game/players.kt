@@ -10,8 +10,8 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.math.*
 
-class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:Boolean = false, var goDown:Boolean = false,
-             var goLeft:Boolean = false, var goRight:Boolean = false, var shot:Boolean = false, val mouseVec: Vector2f,
+class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var velocity: Vector2f = Vector2f(0f, 0f),
+             var shot:Boolean = false, val mouseVec: Vector2f,
              val IDWeapon:Int = 0, var isDead : Boolean = false): Serializable {
     var weapon = when (IDWeapon){
         1 -> Rapier(x, y, mouseVec)
@@ -29,16 +29,13 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:B
     fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player){
         val tempForSpeed = 5F
         val movement = Vector2f(0F, 0F)
-        movement.x += (if (goRight) 1F else 0F) + (if (goLeft) -1F else 0F)
-        movement.y += (if (goDown) 1F else 0F) + (if (goUp) -1F else 0F)
+        movement.x += velocity.x
+        movement.y += velocity.y
         movement.normalise().scale(tempForSpeed)
         x += movement.x
         y += movement.y
         if (shot && HP>0) weapon.attack(arrayPlayers, i)
-        goDown= false
-        goUp= false
-        goRight= false
-        goLeft= false
+        velocity = Vector2f(0f, 0f)
         shot= false
     }
     fun hit(balls:ArrayList<Player>, i:Int) {
