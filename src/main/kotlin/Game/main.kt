@@ -26,6 +26,9 @@ fun main(args: Array<String>) {
         appgc = AppGameContainer(SimpleSlickGame("Simple Slick Game"))
         //appgc.setDisplayMode(640, 480, true)
         appgc.setDisplayMode(640, 480, false)
+        appgc.setShowFPS(false)
+        //appgc.setDisplayMode(1280, 720, true)
+        //appgc.setDisplayMode(1920, 1080, true)
         appgc.start()
     } catch (ex: SlickException) {
         Logger.getLogger(SimpleSlickGame::class.java.name).log(Level.SEVERE, null, ex)

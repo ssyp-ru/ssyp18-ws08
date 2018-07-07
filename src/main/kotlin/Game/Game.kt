@@ -8,6 +8,7 @@ import java.awt.MouseInfo
 import java.util.*
 import org.newdawn.slick.geom.Vector2f
 import org.newdawn.slick.tiled.TiledMap
+import java.awt.Font
 //import sun.nio.ch.Net
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
@@ -18,13 +19,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     var gs = GameState()
 
     private lateinit var map: TiledMap
-    private lateinit var blockedWalk: Array<Array<Boolean>>
-    private lateinit var blockedFire: Array<Array<Boolean>>
-    private lateinit var blocksWalk: ArrayList<Rectangle>
-    private lateinit var blocksFire: ArrayList<Rectangle>
+    private lateinit var comic: TrueTypeFont
+    private lateinit var color: Color
+    private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
+    //private lateinit var minimap: Minimap
+    private lateinit var minimapImage: Image
     private var tileID: Int = 0
-    private val layerWalk: Int = 0
-    private val layerFire: Int = 1
     private lateinit var value: String
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
@@ -58,24 +58,22 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         mapWidth = map.width * map.tileWidth
         tileHeight = map.tileHeight
         tileWidth = map.tileWidth
-        for (i in 0..99) {
-            for (j in 0..99) {
-                tileID = map.getTileId(i, j, layerWalk)
-                value = map.getTileProperty(tileID, "blocked", "false")
-                if (value.equals("true")) {
-                    blockedWalk[i][j] = true
-                    blocksWalk.add(Rectangle(i * tileWidth.toFloat(), j * tileHeight.toFloat(),
-                            tileWidth.toFloat(), tileHeight.toFloat()))
-                }
-                tileID = map.getTileId(i, j, layerFire)
-                value = map.getTileProperty(tileID, "blocked", "false")
-                if (value.equals("true")) {
-                    blockedFire[i][j] = true
-                    blocksFire.add(Rectangle(i * tileWidth.toFloat(), j * tileHeight.toFloat(),
-                            tileWidth.toFloat(), tileHeight.toFloat()))
+        comic = TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 20), false)
+        color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
+        for (i in 0..(cells.size - 1)) {
+            for (j in 0..(cells[i].size - 1)) {
+                cells[i][j] = Cell(i * 32, j * 32, 0)
+                when{
+                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 1)
+                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 2)
+                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 4)
+                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 5)
+
                 }
             }
         }
+        //minimap = Minimap(cells, nick)
+        minimapImage = Image("res/map/Minimap.png")
         camera = Camera(map, mapWidth, mapHeight)
     }
 
@@ -84,7 +82,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(0f, 0f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
+                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
             }
             playersCreated = true
             for(p in gs.players){
@@ -207,7 +205,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         for(p in gs.players)tmp.add(p.value)
         for (i in 0..(tmp.size - 1)) {
             if(tmp[i].isDead)continue
-            tmp[i].hit(tmp, i)
+            tmp[i].hit(tmp, i, cells)
         }
         for(p in tmp)gs.players[p.nick] = p
         //конец косытлей
@@ -224,6 +222,9 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             if(gs.players.containsKey(nick))camera.translate(g, gs.players[nick]!!, gc)
             g.background = Color.blue
             map.render(0, 0)
+            g.font = comic
+            g.color = color
+            g.drawString("SSYP 20!8", 10f, 10f)
             for (i in gs.players) {
                 if(i.value.isDead)continue
                 i.value.weapon.draw(g, gs.bullets)
@@ -234,6 +235,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             }
             if (gs.players[nick] == null) return
             gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - 27.5f, gs.players[nick]!!.y - 52.5f)
+            //minimap.update(gs.players, g, gc, minimapImage)
         }
     }
 }
