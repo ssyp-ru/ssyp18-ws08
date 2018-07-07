@@ -17,8 +17,16 @@ class Camera(map: TiledMap, private val mapWidth: Int, private val mapHeight: In
     }
 
     fun translate(g: Graphics, hero: Player, gc: GameContainer) {
-        x = gc.screenWidth / 2 - hero.x.toInt() - 50
-        y = gc.screenHeight / 2 - hero.y.toInt() - 40
+        /*coord = MouseInfo.getPointerInfo().location
+        x = (-(9 * hero.x + coord.x) / 10).toInt() + gc.screenWidth / 2 - 20
+        y = (-(9 * hero.y + coord.y) / 10).toInt() + gc.screenHeight / 2 - 20*/
+        /*x = gc.screenWidth / 2 - hero.x.toInt() - 60
+        y = gc.screenHeight / 2 - hero.y.toInt() - 40*/
+        //println(gc.screenWidth)
+        g.drawString("${gc.width}", 10f, 50f)
+        x = (gc.width / 2) - hero.x.toInt() - 20
+        y = (gc.height / 2) - hero.y.toInt() - 20
+
         g.translate(x.toFloat(), y.toFloat())
         viewPort.x = (-x).toFloat()
         viewPort.y = (-y).toFloat()

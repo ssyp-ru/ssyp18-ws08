@@ -13,15 +13,15 @@ class NetOnline(private val nick: String,
                 private val sync: NetSync) :
         Thread("Onliner") {
 
-    private val cons = Network.createConsumer(ip, "$nick-ONLINE")
-    private val prod = Network.createProducer(ip)
+    private val cons = createConsumer(ip, "$nick-ONLINE")
+    private val prod = createProducer(ip)
     private var host = 0
 
     private var pi: Array<String> = arrayOf()
 
     init {
-        cons.assign(asList(TopicPartition(gameTopic, Network.ONLINE)))
-        cons.seekToEnd(asList(TopicPartition(gameTopic, Network.ONLINE)))
+        cons.assign(asList(TopicPartition(gameTopic, PartitionID.ONLINE.ordinal)))
+        cons.seekToEnd(asList(TopicPartition(gameTopic, PartitionID.ONLINE.ordinal)))
     }
     override fun run() {
         var records: ConsumerRecords<String, String>
@@ -60,7 +60,7 @@ class NetOnline(private val nick: String,
                 newHost()
             }
             if(players[nick]!!.onlineTimer < 850) {
-                prod.send(ProducerRecord(gameTopic, Network.ONLINE, "alive", nick))
+                prod.send(ProducerRecord(gameTopic, PartitionID.ONLINE.ordinal, "alive", nick))
             }
         }
     }
@@ -71,7 +71,7 @@ class NetOnline(private val nick: String,
             host = i
             break
         }
-        prod.send(ProducerRecord(gameTopic, Network.ONLINE, "newHost", players[pi[host]]!!.nick))
+        prod.send(ProducerRecord(gameTopic, PartitionID.ONLINE.ordinal, "newHost", players[pi[host]]!!.nick))
         if (nick == players[pi[host]]!!.nick) sync.setHost(true)
     }
 }

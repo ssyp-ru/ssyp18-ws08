@@ -13,17 +13,9 @@ import java.util.Arrays.asList
 import kotlin.collections.ArrayList
 
 class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
-    /*var gs = GameState(Player(300F, 360F, 5, readLine().toString(), false, false, false, false,
-            false, Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
-            MouseInfo.getPointerInfo().getLocation().getY().toFloat() - 384F), 1), ArrayList<Player>(), 
-            ArrayList<Player>())*/
+
     var gs = GameState()
-//    var arrayEnemy = ArrayList<Player>()
-//    var arrAllPlayers = ArrayList<Player>()
-//
-//    var gamer = Player(300F, 360F, 5, false, false, false, false,
-//            false, Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
-//            MouseInfo.getPointerInfo().getLocation().getY().toFloat() - 384F), 1)
+
     private lateinit var map: TiledMap
     private lateinit var cells: Array<Array<cell>>
     private var tileID: Int = 0
@@ -39,7 +31,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     val net: Network
     val gameName: String
     var nick: String
-    //var players = Players() // Not ready
+    private var playersCreated = false
+    private var isGameOver = false
     init {
         print("Host?")
         isHost = readLine()!!.toBoolean()
@@ -47,7 +40,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         gameName = readLine()!!
         print("Nick?")
         nick = readLine()!!
-        net = Network("10.42.0.1:9092", gameName, isHost, nick, gs)
+        net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
+        playersCreated = false
     }
     override fun init(gc: GameContainer) {
         gc.setVSync(true)
@@ -75,12 +69,6 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 }
             }
         }
-        /*for (i in 0..4) {
-            gs.arrayEnemy.add(Player((15 + i * 60F), (15 + i * 60F), 5, false, false, false,
-                    false, false, Vector2f(1F, 1F)))
-            for (i in gs.arrayEnemy) gs.arrAllPlayers.add(i)
-            gs.arrAllPlayers.add(gs.gamer)
-        }*/
         camera = Camera(map, mapWidth, mapHeight)
     }
 
@@ -91,45 +79,38 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             for(p in plrs){
                 gs.players[p.key] = Player(0f, 0f, 5, p.key, mouseVec = Vector2f(1f, 1f))
             }
-        } else if (net.getGameStarted()) {
+            playersCreated = true
+            for(p in gs.players){
+                println("${p.key} - ${p.value}")
+            }
+        } else if (net.getGameStarted() and playersCreated) {
             //SYNC
             val tmp = net.gameState
             if (tmp is GameState) gs = tmp
             
             val acts = net.getActions()
             for(a in acts){
-                when(a.name){
-                    "move" -> {
-                        when(a.params[0]){
-                            "right" -> gs.players[a.sender]!!.goRight = true
-                            "left" -> gs.players[a.sender]!!.goLeft = true
-                            "up" -> gs.players[a.sender]!!.goUp = true
-                            "down" -> gs.players[a.sender]!!.goDown = true
+                try {
+                    when (a.name) {
+                    /**/
+                        "move" -> {
+                            when (a.params[0]) {
+                                "right" -> gs.players[a.sender]!!.goRight = true
+                                "left" -> gs.players[a.sender]!!.goLeft = true
+                                "up" -> gs.players[a.sender]!!.goUp = true
+                                "down" -> gs.players[a.sender]!!.goDown = true
+                            }
+                            allMove(gc)
                         }
+                        "shot" -> gs.players[a.sender]!!.shot = true
+                        "direction" -> gs.players[a.sender]!!.weapon.mouseVec = Vector2f(a.params[0].toFloat(),
+                                a.params[1].toFloat())
                     }
-                    "shot" -> gs.players[a.sender]!!.shot = true
-                    "direction" -> gs.players[a.sender]!!.weapon.mouseVec = Vector2f(a.params[0].toFloat(),
-                            a.params[1].toFloat())
+                }catch(e: NullPointerException){
+                    println("${a.sender} alredy dead, skipping...")
                 }
             }
-           /* for (a in acts) {
-                when (a.name) {
-                    "move" -> movePlyer(players[a.sender]!!, a.params[0])
-                    "stop" -> stopPlayer(players[a.sender]!!)
-                    "color" -> players[a.sender]!!.color = Color(a.params[0].toInt(),
-                            a.params[1].toInt(), a.params[2].toInt())
-                    "background" -> players.backround = Color(a.params[0].toInt(),
-                            a.params[1].toInt(), a.params[2].toInt())
-                    else -> ""
-                /*
-                "pos" -> {
-                    players[a.sender]!!.x = a.params[0].toFloat()
-                    players[a.sender]!!.y = a.params[1].toFloat()
-                }
-                */
-                }
-            }*/
-            myControls(gc)
+            if(gs.players.containsKey(nick))myControls(gc)
             allMove(gc)
             var gun: Meelee
             for (i in gs.players) {
@@ -140,81 +121,21 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             
             net.gameState = gs
         }
-        
-        /*for (i in gs.arrayEnemy) {
-            i.goLeft = (Random().nextInt(2) == 1)
-            i.goRight = (Random().nextInt(2) == 1)
-            i.goUp = (Random().nextInt(2) == 1)
-            i.goDown = (Random().nextInt(2) == 1)
-            i.shot = (Random().nextInt(2) == 1)
-        }*/
-        //получаем экшины в больших количествах и начнаем с ними что-то делать
-
-       
     }
-
-    /*override fun keyPressed(key: Int, c: Char) {
-        when (key) {
-            Input.KEY_UP -> {
-                net.doAction("move", Arrays.asList("u")); movePlyer(players[nick]!!, "u")
-            }
-            Input.KEY_DOWN -> {
-                net.doAction("move", Arrays.asList("d")); movePlyer(players[nick]!!, "d")
-            }
-            Input.KEY_LEFT -> {
-                net.doAction("move", Arrays.asList("l")); movePlyer(players[nick]!!, "l")
-            }
-            Input.KEY_RIGHT -> {
-                net.doAction("move", Arrays.asList("r")); movePlyer(players[nick]!!, "r")
-            }
-            Input.KEY_C -> {
-                players[nick]!!.color = Color(rnd.nextInt(256), rnd.nextInt(256),
-                        rnd.nextInt(256))
-                net.doAction("color", Arrays.asList("${players[nick]!!.color.red}",
-                        "${players[nick]!!.color.green}",
-                        "${players[nick]!!.color.blue}"))
-            }
-            Input.KEY_ENTER -> {
-                if (isHost) net.startGame()
-            }
-            Input.KEY_B -> {
-                players.backround = Color(rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
-                net.doAction("background", Arrays.asList("${players.backround.red}",
-                        "${players.backround.green}",
-                        "${players.backround.blue}"))
-            }
-        }
-    }
-
-    override fun keyReleased(key: Int, c: Char) {
-        if ((key != Input.KEY_UP) and (key != Input.KEY_DOWN) and (key != Input.KEY_RIGHT) and (key != Input.KEY_LEFT)){
-            return
-        }
-        stopPlayer(players[nick]!!)
-        net.doAction("stop", Arrays.asList(""))
-    }*/
 
     private fun deathCheck() {
-        //if (gs.players[nick]!!.HP <= 0) gs.players.remove(nick)
-        //Если работает, то я буду орать
+        val toKill = ArrayList<String>()
         for(p in gs.players){
-            if(p.value.HP <= 0)gs.players.remove(p.key)
+            if(p.value.HP <= 0) {
+                if(p.value.nick == nick)isGameOver = true
+                toKill.add(p.key)
+            }
         }
-
-        /*var flag = true
-        while (flag) {
-            flag = false
-            for (i in gs.arrAllPlayers)
-                if (i.HP <= 0) {
-                    gs.arrAllPlayers.remove(i)
-                    gs.arrayEnemy.remove(i)
-                    flag = true
-                    break
-                }
-        }*/
+        for(p in toKill)gs.players.remove(p)
     }
 
     private fun myControls(gc: GameContainer) {
+        //println(playersCreated)
         val input = gc.input
         if (input.isKeyDown(Input.KEY_D)) {
             gs.players[nick]!!.goRight = true
@@ -241,10 +162,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         }
 
         val gun = gs.players[nick]!!.weapon
-        gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
-                - 640,
-                MouseInfo.getPointerInfo().getLocation().getY().toFloat()
-                        - 360)
+        gun.mouseVec = Vector2f(input.mouseX.toFloat() - ((gc.width) / 2),
+                input.mouseY.toFloat() - ((gc.height) / 2))
         net.doAction("direction", asList("${gun.mouseVec.x}", "${gun.mouseVec.y}"))
     }
 
@@ -254,10 +173,6 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
         deathCheck()
 
-
-        /*for (i in 0..(gs.arrAllPlayers.size - 1)) {
-            gs.arrAllPlayers[i].hit(gs.arrAllPlayers, i)
-        }*/
         //костыли
         val tmp = ArrayList<Player>()
         for(p in gs.players)tmp.add(p.value)
@@ -275,8 +190,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 g.drawString(p.nick, 10f, y)
                 y += 20
             }
-        } else {
-            camera.translate(g, gs.players[nick]!!, gc)
+        } else if(playersCreated){
+            if(gs.players.containsKey(nick))camera.translate(g, gs.players[nick]!!, gc)
             g.background = Color.blue
             map.render(0, 0)
             for (i in gs.players) {
