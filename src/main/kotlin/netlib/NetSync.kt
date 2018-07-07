@@ -119,7 +119,7 @@ class NetSync(gs: Serializable,
                         }
                     }
                 }
-                if ((System.currentTimeMillis() - prevSync) > (syncTime * cHost)) {
+                /*if ((System.currentTimeMillis() - prevSync) > (syncTime * cHost)) {
                     host = if (host < (playersList.size - 1)) (host + 1) else 0
                     if (nick == playersList[host]) {
                         prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "host",
@@ -127,7 +127,7 @@ class NetSync(gs: Serializable,
                         setHost(true)
                     }
                     prevSync = System.currentTimeMillis()
-                }
+                }*/
             }
         }
     }

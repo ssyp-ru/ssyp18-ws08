@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
         val appgc: AppGameContainer
         appgc = AppGameContainer(Menu("EPIC KAFKA WARRIORS: PREPARE YOUR CLUSTER EDITION"))
         //appgc.setDisplayMode(1366, 768, true)
-        appgc.setDisplayMode(640, 480, false)
+        appgc.setDisplayMode(appgc.screenWidth, appgc.screenHeight, true)
         //appgc.setDisplayMode(1280,720,false)
         //appgc.setDisplayMode(1920, 1080, true)
 //        appgc.setDisplayMode(640, 480, false)
