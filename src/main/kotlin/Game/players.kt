@@ -7,9 +7,10 @@ import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.math.*
 
-class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, var goDown:Boolean = false,
+class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:Boolean = false, var goDown:Boolean = false,
              var goLeft:Boolean = false, var goRight:Boolean = false, var shot:Boolean = false, val mouseVec: Vector2f,
              val IDWeapon:Int = 0): Serializable {
     var weapon = when (IDWeapon){
@@ -25,7 +26,7 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         g.color = colorPlayer
         g.fillOval(x, y, 40F, 40F)
     }
-    fun controlPlayer(gc:GameContainer, arrayPlayers:ArrayList<Player>){
+    fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player){
         val tempForSpeed = 5F
         val movement = Vector2f(0F, 0F)
         movement.x += (if (goRight) 1F else 0F) + (if (goLeft) -1F else 0F)
@@ -33,16 +34,17 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         movement.normalise().scale(tempForSpeed)
         x += movement.x
         y += movement.y
-        if (shot) weapon.attack(arrayPlayers)
+        if (shot && HP>0) weapon.attack(arrayPlayers, i)
         goDown= false
         goUp= false
         goRight= false
         goLeft= false
         shot= false
     }
-    fun hit(balls:ArrayList<Player>, i:Int, blocksWalk: ArrayList<Rectangle>, blocksFire: ArrayList<Rectangle>) {
+    fun hit(balls:ArrayList<Player>, i:Int) {
 
-        for (k in 0..(blocksWalk.size - 1)){
+
+        /*for (k in 0..(blocksWalk.size - 1)){
             if((((blocksWalk[k].x + blocksWalk[k].width) < (x - 20)) || (blocksWalk[k].x) > (x + 20)) &&
                     (((blocksWalk[k].y + blocksWalk[k].height) < (y - 20)) || (blocksWalk[k].y) > (y + 20))){
                 when{
@@ -67,9 +69,8 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
                     ((blocksFire[k].y) > (y + 20)) -> blocksFire[k].y - 20
                 }
             }
-        }
-
-        /*for (k in (i + 1)..(balls.size - 1)){
+        }*/
+        for (k in (i + 1)..(balls.size - 1)){
             val dis = distance(x, y, balls[k].x, balls[k].y)
             if (dis < 40) {
                 val b2 = Vector2f(balls[k].x - x, balls[k].y - y).normalise().scale((40 - dis) / 2)
@@ -82,7 +83,6 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         }
         weapon.playerX = x
         weapon.playerY = y
-        */
     }
 
     private fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
