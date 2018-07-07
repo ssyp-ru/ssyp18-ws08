@@ -10,8 +10,7 @@ import java.util.*
 
 /*class Minimap(val cells: Array<Array<Cell>>, val nick: String){
     fun update (players: HashMap<String, Player>, g: Graphics, gc: GameContainer, minimapImage: Image){
-        /*g.color = Color.white
-        g.drawRect(0f, 0f, 410f, 410f)
+        g.color = Color.white
         for (i in 0..(cells.size - 1)){
             for (j in 0..(cells[i].size - 1)){
                 when{
