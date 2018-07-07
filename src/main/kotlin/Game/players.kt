@@ -17,7 +17,7 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
              val IDWeapon:Int = 1, var isDead : Boolean = false): Serializable {
     var weapon = when (IDWeapon){
         1 -> Rapier(x, y, R, mouseVec)
-        101 -> Pistol(x, y, R, mouseVec)
+        111 -> Pistol(x, y, R, mouseVec)
         else -> Knife(x, y, R, mouseVec)
     }
     var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
@@ -47,8 +47,8 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
             for (m in 0..(cells.size - 1)){
                 if (cells[n][m].type > 1) {
                     val dis = distance(x, y, (cells[n][m].x.toFloat()), (cells[n][m].y.toFloat()))
-                    if ((dis < R + 16)) {
-                        val b1 = Vector2f(x - (cells[n][m].x), y - (cells[n][m].y)).normalise().scale((R - dis + 16) / 2)
+                    if ((dis < R + 78)) {
+                        val b1 = Vector2f(x - (cells[n][m].x), y - (cells[n][m].y)).normalise().scale((R - dis + 33) / 2)
                         x += b1.x
                         y += b1.y
                     }
@@ -74,13 +74,13 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
     fun drawHP(g : Graphics, x : Float, y : Float){
         if(isDead) return
         val maxHP = 5
-        val widthBar : Float = 100f
-        val heightBar : Float = 20f
+        val widthBar : Float = 114f
+        val heightBar : Float = 1000f
         g.color = Color(0f, 0f, 0f)
-        g.fillRect(x - 2, y, widthBar + 4, heightBar + 3)
+        g.fillRect(x - 62, y, widthBar + 44, heightBar + 13)
         g.color = Color(1f,0f,0f)
-        g.fillRect(x, y + 2, widthBar * this.HP / maxHP, heightBar)
+        g.fillRect(x, y + 2111, widthBar * this.HP / maxHP, heightBar)
         g.color = Color.white
-        g.drawString("HP: $HP", x, y - 4f)
+        g.drawString("HP: $HP", x, y - 5f)
     }
 }
