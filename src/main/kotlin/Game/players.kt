@@ -11,9 +11,10 @@ import kotlin.math.*
 class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:Boolean = false, var goDown:Boolean = false,
              var goLeft:Boolean = false, var goRight:Boolean = false, var shot:Boolean = false, val mouseVec: Vector2f,
              val R:Float = 20F, val speed:Float = 5F, val IDWeapon:Int = 0): Serializable {
+    val arrBullets = ArrayList<Bullets>()
     var weapon = when (IDWeapon){
         1 -> Rapier(x, y, R, mouseVec)
-//        101 -> Pistol(x, y, mouseVec, R)
+        101 -> Pistol(x, y, R, mouseVec)
         else -> Knife(x, y, R, mouseVec)
     }
     var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(),
@@ -21,6 +22,7 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:B
             Random().nextFloat())
 
     fun draw(g: org.newdawn.slick.Graphics) {
+        weapon.draw(g, arrBullets)
         g.color = colorPlayer
         g.fillOval(x, y, 2*R, 2*R)
     }
@@ -32,13 +34,14 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:B
         movement.normalise().scale(tempForSpeed)
         x += movement.x
         y += movement.y
-        if (shot && HP>0) weapon.attack(arrayPlayers, i)
+        if (shot && HP>0) weapon.attack(arrayPlayers, i, arrBullets)
         goDown= false
         goUp= false
         goRight= false
         goLeft= false
         shot= false
     }
+
     fun hit(arrPLayers:ArrayList<Player>, i:Int) {
         for (k in (i + 1)..(arrPLayers.size - 1)){
             val dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)
@@ -53,9 +56,5 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:B
         }
         weapon.playerX = x
         weapon.playerY = y
-    }
-
-    private fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
-        return(sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
     }
 }

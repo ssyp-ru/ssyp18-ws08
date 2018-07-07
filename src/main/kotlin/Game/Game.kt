@@ -11,6 +11,7 @@ import org.newdawn.slick.tiled.TiledMap
 //import sun.nio.ch.Net
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
+import kotlin.math.pow
 
 class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     /*var gs = GameState(Player(300F, 360F, 5, readLine().toString(), false, false, false, false,
@@ -95,7 +96,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(0f, 0f, 5, p.key, mouseVec = Vector2f(1f, 1f))
+                gs.players[p.key] = Player(0f, 0f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
             }
         } else if (net.getGameStarted()) {
             //SYNC
@@ -138,7 +139,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             }*/
             myControls(gc)
             allMove(gc)
-            var gun: Meelee
+            var gun: Weapon
             for (i in gs.players) {
                 gun = i.value.weapon
                 gun.cooldownCounter += if (gun.cooldownCounter <
@@ -255,9 +256,29 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         net.doAction("direction", asList("${gun.mouseVec.x}", "${gun.mouseVec.y}"))
     }
 
+
+    private fun checkHit(arrAllBullets:ArrayList<Bullets>){
+        for(i in gs.players) {
+            for ( j in arrAllBullets) {
+                if (distance(i.value.x - i.value.R, i.value.y - i.value.R, j.x - j.r / 2, j.x - j.r / 2)
+                        <= i.value.R + j.r / 2){
+                    i.value.HP -= j.damage
+                }
+            }
+        }
+    }
+
     private fun allMove(gc: GameContainer) {
-        for (i in gs.players)
+        val arrAllBullets = ArrayList<Bullets>()
+        for (i in gs.players) {
             i.value.controlPlayer(gc, gs.players, i.value)
+            for (k in i.value.arrBullets){
+                arrAllBullets.add(k)
+                k.x += k.direct.x
+                k.y += k.direct.y
+            }
+        }
+        checkHit(arrAllBullets)
 
         deathCheck()
 
@@ -286,7 +307,6 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             g.background = Color.blue
             map.render(0, 0)
             for (i in gs.players) {
-                i.value.weapon.draw(g)
                 i.value.draw(g)
             }
         }

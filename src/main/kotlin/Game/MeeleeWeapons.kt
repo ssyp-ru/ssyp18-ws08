@@ -5,18 +5,14 @@ import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import kotlin.math.*
 
-abstract class Meelee(val attackRange:Float, val attackAngle:Float, val cooldown:Float, val damage:Int,
-                      val ID:Int):Serializable{
-    abstract var playerX:Float
-    abstract var playerY:Float
-    abstract val playerR:Float
-    abstract var mouseVec:Vector2f
-    var cooldownCounter = cooldown
+abstract class Meelee(val attackRange:Float, val attackAngle:Float, override val cooldown:Float, val damage:Int,
+                      val ID:Int):Weapon(){
+    override var cooldownCounter = cooldown
     val x = playerX - playerR * attackRange / 2
     val y = playerY - playerR * attackRange / 2
     val r = playerR * (attackRange + 2)
 
-    fun draw(g:org.newdawn.slick.Graphics) {
+    override fun draw(g:org.newdawn.slick.Graphics, arrBullets:ArrayList<Bullets>) {
         g.color = if (cooldownCounter >= cooldown) Color.blue else Color.red
         val temp = 60 * atan(mouseVec.y / mouseVec.x)
         val tempAngle:Float
@@ -38,7 +34,7 @@ abstract class Meelee(val attackRange:Float, val attackAngle:Float, val cooldown
         }
     }
     */
-    fun attack(arrPlayers:HashMap<String, Player>, k:Player){
+    override fun attack(arrPlayers:HashMap<String, Player>, k:Player, arrBullets:ArrayList<Bullets>){
         if (cooldownCounter == cooldown){
             cooldownCounter = 0F
             for (i in arrPlayers){
@@ -61,9 +57,9 @@ abstract class Meelee(val attackRange:Float, val attackAngle:Float, val cooldown
     }
 }
 
-class Knife(override var playerX: Float, override var playerY: Float, override val playerR: Float, override var mouseVec:Vector2f)
-    : Meelee(1F, 90F, 30F, 1, 0) {}
-class Rapier(override var playerX: Float, override var playerY: Float, override val playerR: Float, override var mouseVec:Vector2f)
-    : Meelee(5F, 15F, 60F, 1, 1) {}
-class DeathPuls(override var playerX: Float, override var playerY: Float, override val playerR: Float, override var mouseVec:Vector2f)
-    : Meelee(1000F, 0.1F, 180F, 1, 2) {}
+class Knife(override var playerX: Float, override var playerY: Float, override val playerR: Float,
+            override var mouseVec:Vector2f): Meelee(1F, 90F, 30F, 1, 0) {}
+class Rapier(override var playerX: Float, override var playerY: Float, override val playerR: Float,
+             override var mouseVec:Vector2f): Meelee(5F, 15F, 60F, 1, 1) {}
+class DeathPuls(override var playerX: Float, override var playerY: Float, override val playerR: Float,
+                override var mouseVec:Vector2f) : Meelee(1000F, 0.1F, 180F, 1, 2) {}
