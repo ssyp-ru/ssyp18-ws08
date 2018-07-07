@@ -133,7 +133,8 @@ fun createProducer(ip: String): KafkaProducer<String, String> {
     prodProperties.setProperty("key.serializer", StringSerializer::class.java.name)
     prodProperties.setProperty("value.serializer", StringSerializer::class.java.name)
     prodProperties.setProperty("retries", "5")
-    prodProperties.setProperty("acks", "all")
+    prodProperties.setProperty("acks", "1")
+    //prodProperties.setProperty("buffer.memory", "1000")
     return KafkaProducer(prodProperties)
 }
 

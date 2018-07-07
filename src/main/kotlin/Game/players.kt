@@ -31,7 +31,7 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
         val movement = Vector2f(0F, 0F)
         movement.x += velocity.x
         movement.y += velocity.y
-        movement.normalise().scale(tempForSpeed)
+        movement.scale(tempForSpeed)
         x += movement.x
         y += movement.y
         if (shot && HP>0) {
@@ -77,10 +77,10 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
         val widthBar : Float = 100f
         val heightBar : Float = 20f
         g.color = Color(0f, 0f, 0f)
-        g.fillRect(x - 2, y, widthBar + 4, heightBar - 1)
+        g.fillRect(x - 2, y, widthBar + 4, heightBar + 3)
         g.color = Color(1f,0f,0f)
         g.fillRect(x, y + 2, widthBar * this.HP / maxHP, heightBar)
         g.color = Color.white
-        g.drawString("HP: $HP", x, y + 2.5f)
+        g.drawString("HP: $HP", x, y - 4f)
     }
 }
