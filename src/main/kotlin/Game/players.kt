@@ -1,6 +1,8 @@
 package Game
 
+import org.newdawn.slick.Color
 import org.newdawn.slick.GameContainer
+import org.newdawn.slick.Graphics
 import org.newdawn.slick.Input
 import org.newdawn.slick.geom.Rectangle
 import org.newdawn.slick.geom.Vector2f
@@ -55,5 +57,15 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
 
     private fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
         return(sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
+    }
+
+    fun drawHP(g : Graphics, x : Float, y : Float){
+        var maxHP = 5
+        var widthBar : Float = 100f
+        var heightBar : Float = 20f
+        g.color = Color(0f, 0f, 0f)
+        g.fillRect(x - 2, y, widthBar + 4, heightBar + 4)
+        g.color = Color(1f,0f,0f)
+        g.fillRect(x, y + 2, widthBar * this.HP / maxHP, heightBar)
     }
 }

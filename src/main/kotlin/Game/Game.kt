@@ -197,12 +197,16 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             if(gs.players.containsKey(nick))camera.translate(g, gs.players[nick]!!, gc)
             g.background = Color.blue
             map.render(0, 0)
+            gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - 27.5f, gs.players[nick]!!.y - 52.5f)
+            g.color = Color.white
+            g.drawString("HP: ${gs.players[nick]!!.HP}", gs.players[nick]!!.x, gs.players[nick]!!.y - 50)
             for (i in gs.players) {
                 if(i.value.isDead)continue
                 i.value.weapon.draw(g)
                 i.value.draw(g)
-                if(i.key == nick){
-                    g.color = Color.yellow
+                if(i.key != nick){
+                    i.value.drawHP(g, i.value.x - 27.5f, i.value.y - 52.5f)
+                    g.color = Color.white
                     g.drawString("HP: ${i.value.HP}", i.value.x, i.value.y - 50)
                 }
             }
