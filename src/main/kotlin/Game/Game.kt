@@ -11,6 +11,7 @@ import org.newdawn.slick.tiled.TiledMap
 //import sun.nio.ch.Net
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
+import kotlin.math.pow
 
 class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
@@ -83,7 +84,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(0f, 0f, 5, p.key, mouseVec = Vector2f(1f, 1f))
+                gs.players[p.key] = Player(0f, 0f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
             }
             playersCreated = true
             for(p in gs.players){
@@ -111,14 +112,13 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             }
             if(gs.players.containsKey(nick))myControls(gc)
             allMove(gc)
-            var gun: Meelee
+            var gun: Weapon
             for (i in gs.players) {
                 if(i.value.isDead)continue
                 gun = i.value.weapon
                 gun.cooldownCounter += if (gun.cooldownCounter <
                         gun.cooldown) 1 else 0
             }
-            
             net.gameState = gs
         }
     }
@@ -167,11 +167,38 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         net.doAction("direction", asList("${gun.mouseVec.x}", "${gun.mouseVec.y}"))
     }
 
-    private fun allMove(gc: GameContainer) {
-        for (i in gs.players) {
-            if (i.value.isDead) continue
-            i.value.controlPlayer(gc, gs.players, i.value)
+
+    private fun checkHit(){
+        val toRemove = ArrayList<Bullets>()
+        for(i in gs.players) {
+            for (j in gs.bullets) {
+                if (distance(i.value.x + i.value.R, i.value.y + i.value.R, j.x + (j.r), j.y + (j.r))
+                        <= i.value.R + (j.r)){
+                    i.value.HP -= j.damage
+                    toRemove.add(j)
+                }
+                if (j.y > map.height * map.tileHeight || j.y < 0) toRemove.add(j)
+                if (j.x > map.width * map.tileWidth || j.x < 0) toRemove.add(j)
+            }
         }
+        for(b in toRemove){
+            gs.bullets.remove(b)
+        }
+
+    }
+
+    private fun allMove(gc: GameContainer) {
+        val arrAllBullets = ArrayList<Bullets>()
+        for (i in gs.players) {
+            i.value.controlPlayer(gc, gs.players, i.value, gs.bullets)
+            if (i.value.isDead) continue
+            for (k in gs.bullets){
+                arrAllBullets.add(k)
+                k.x += k.direct.x
+                k.y += k.direct.y
+            }
+        }
+        checkHit()
 
         deathCheck()
 
@@ -199,7 +226,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             map.render(0, 0)
             for (i in gs.players) {
                 if(i.value.isDead)continue
-                i.value.weapon.draw(g)
+                i.value.weapon.draw(g, gs.bullets)
                 i.value.draw(g)
                 if(i.key == nick){
                     g.color = Color.yellow

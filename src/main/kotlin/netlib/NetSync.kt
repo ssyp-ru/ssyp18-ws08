@@ -80,7 +80,7 @@ class NetSync(gs: Serializable,
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
                 gsarrLock.unlock()
                 //println("send sync")
-                Thread.sleep(2950)
+                Thread.sleep(950)
             } else {
                 val records = cons.poll(50)
                 for (r in records) {
