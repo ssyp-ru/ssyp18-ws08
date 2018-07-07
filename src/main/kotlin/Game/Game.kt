@@ -116,10 +116,11 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                     println("${a.sender} alredy dead, skipping...")
                 }
             }
-            if(gs.players.containsKey(nick))myControls(gc)
+            if(gs.players.containsKey(nick) and !gs.players[nick]!!.isDead)myControls(gc)
             allMove(gc)
             var gun: Meelee
             for (i in gs.players) {
+                if(i.value.isDead)continue
                 gun = i.value.weapon
                 gun.cooldownCounter += if (gun.cooldownCounter <
                         gun.cooldown) 1 else 0
@@ -130,14 +131,15 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     private fun deathCheck() {
-        val toKill = ArrayList<String>()
+        //val toKill = ArrayList<String>()
         for(p in gs.players){
             if(p.value.HP <= 0) {
-                if(p.value.nick == nick)isGameOver = true
-                toKill.add(p.key)
+                p.value.isDead = true
+                //if(p.value.nick == nick)isGameOver = true
+                //toKill.add(p.key)
             }
         }
-        for(p in toKill)gs.players.remove(p)
+        //for(p in toKill)gs.players.remove(p)
     }
 
     private fun myControls(gc: GameContainer) {
@@ -174,8 +176,10 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     private fun allMove(gc: GameContainer) {
-        for (i in gs.players)
+        for (i in gs.players) {
+            if (i.value.isDead) continue
             i.value.controlPlayer(gc, gs.players, i.value)
+        }
 
         deathCheck()
 
@@ -183,6 +187,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         val tmp = ArrayList<Player>()
         for(p in gs.players)tmp.add(p.value)
         for (i in 0..(tmp.size - 1)) {
+            if(tmp[i].isDead)continue
             tmp[i].hit(tmp, i)
         }
         for(p in tmp)gs.players[p.nick] = p
@@ -191,7 +196,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     override fun render(gc: GameContainer, g: Graphics) {
         if (!net.getGameStarted()) {
-            var y = 10f
+            var y = 20f
             for (p in net.getPlayers()) {
                 g.drawString(p.nick, 10f, y)
                 y += 20
@@ -201,6 +206,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             g.background = Color.blue
             map.render(0, 0)
             for (i in gs.players) {
+                if(i.value.isDead)continue
                 i.value.weapon.draw(g)
                 i.value.draw(g)
             }
