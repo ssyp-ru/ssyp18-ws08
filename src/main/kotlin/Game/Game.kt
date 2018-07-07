@@ -105,7 +105,6 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             val acts = net.getActions()
             for(a in acts){
                 when(a.name){
-                    /**/
                     "move" -> {
                         when(a.params[0]){
                             "right" -> gs.players[a.sender]!!.goRight = true
