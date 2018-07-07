@@ -13,8 +13,8 @@ class NetLobby(private val gameName: String,
                private val players: ArrayList<NetPlayer>,
                private val playersLock: ReentrantLock) :
         Thread("Lobby") {
-    private val cons = Network.createConsumer(ip, nick)
-    private val prod = Network.createProducer(ip)
+    private val cons = createConsumer(ip, nick)
+    private val prod = createProducer(ip)
     private val adm = NetAdmin(ip)
     private val topicName = "-LOBBY-$gameName"
     private var isGameReady = false

@@ -13,8 +13,8 @@ class NetOnline(private val nick: String,
                 private val sync: NetSync) :
         Thread("Onliner") {
 
-    private val cons = Network.createConsumer(ip, "$nick-ONLINE")
-    private val prod = Network.createProducer(ip)
+    private val cons = createConsumer(ip, "$nick-ONLINE")
+    private val prod = createProducer(ip)
     private var host = 0
 
     private var pi: Array<String> = arrayOf()

@@ -16,7 +16,7 @@ class Network(private val ip: String,
               private val isHost: Boolean,
               private val nick: String,
               gs: Serializable) {
-    private val prod = Network.createProducer(ip)
+    private val prod = createProducer(ip)
     private var lobby: NetLobby
     private var lobbyTopicName = ""
     private var actionsParser: NetActionsParser
@@ -107,37 +107,37 @@ class Network(private val ip: String,
         const val LOBBY = 0
         const val SYNC = 1
         const val ONLINE = 2
-        fun createConsumer(ip: String, gid: String): KafkaConsumer<String, String> {
-            val consProperties = Properties()
-            consProperties.setProperty("bootstrap.servers", ip)
-            consProperties.setProperty("key.deserializer", StringDeserializer::class.java.name)
-            consProperties.setProperty("value.deserializer", StringDeserializer::class.java.name)
-            consProperties.setProperty("enable.auto.commit", "true")
-            consProperties.setProperty("auto.commit", "50")
-            consProperties.setProperty("group.id", gid)
-            return KafkaConsumer(consProperties)
-        }
-
-        fun createProducer(ip: String): KafkaProducer<String, String> {
-            val prodProperties = Properties()
-            prodProperties.setProperty("bootstrap.servers", ip)
-            prodProperties.setProperty("key.serializer", StringSerializer::class.java.name)
-            prodProperties.setProperty("value.serializer", StringSerializer::class.java.name)
-            prodProperties.setProperty("retries", "5")
-            prodProperties.setProperty("acks", "all")
-            return KafkaProducer(prodProperties)
-        }
-
-        fun createLobbyTopicName(gameName: String): String {
-            return "-LOBBY-$gameName"
-        }
-        /*fun createPlayerTopicName(nick: String): String{
-            return "-PLAYER-$nick"
-        }*/
+    }
+    enum class PartitionID{
+        LOBBY, SYNC, ONLINE
     }
 
 }
 
+fun createConsumer(ip: String, gid: String): KafkaConsumer<String, String> {
+    val consProperties = Properties()
+    consProperties.setProperty("bootstrap.servers", ip)
+    consProperties.setProperty("key.deserializer", StringDeserializer::class.java.name)
+    consProperties.setProperty("value.deserializer", StringDeserializer::class.java.name)
+    consProperties.setProperty("enable.auto.commit", "true")
+    consProperties.setProperty("auto.commit", "50")
+    consProperties.setProperty("group.id", gid)
+    return KafkaConsumer(consProperties)
+}
+
+fun createProducer(ip: String): KafkaProducer<String, String> {
+    val prodProperties = Properties()
+    prodProperties.setProperty("bootstrap.servers", ip)
+    prodProperties.setProperty("key.serializer", StringSerializer::class.java.name)
+    prodProperties.setProperty("value.serializer", StringSerializer::class.java.name)
+    prodProperties.setProperty("retries", "5")
+    prodProperties.setProperty("acks", "all")
+    return KafkaProducer(prodProperties)
+}
+
+fun createLobbyTopicName(gameName: String): String {
+    return "-LOBBY-$gameName"
+}
 /*enum class GamePartitions(val p: Int){
     LOBBY (0),
     SYNC(1),

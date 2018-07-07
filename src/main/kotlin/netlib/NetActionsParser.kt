@@ -9,7 +9,7 @@ class NetActionsParser(ip: String,
                        private var actionsLock: ReentrantLock) :
         Thread("ActionParser") {
     private var actions = ArrayList<NetAction>()
-    private val cons = Network.createConsumer(ip, nick)
+    private val cons = createConsumer(ip, nick)
 
     fun actions(): ArrayList<NetAction> {
         actionsLock.lock()

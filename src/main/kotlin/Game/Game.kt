@@ -43,6 +43,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     val gameName: String
     var nick: String
     //var players = Players() // Not ready
+    var playersCreated = false
+    var isGameOver = false
     init {
         print("Host?")
         isHost = readLine()!!.toBoolean()
@@ -50,7 +52,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         gameName = readLine()!!
         print("Nick?")
         nick = readLine()!!
-        net = Network("10.42.0.1:9092", gameName, isHost, nick, gs)
+        net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
+        val playersCreated = false
     }
     override fun init(gc: GameContainer) {
         gc.setVSync(true)
@@ -97,26 +100,34 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             for(p in plrs){
                 gs.players[p.key] = Player(0f, 0f, 5, p.key, mouseVec = Vector2f(1f, 1f))
             }
-        } else if (net.getGameStarted()) {
+            playersCreated = true
+            for(p in gs.players){
+                println("${p.key} - ${p.value}")
+            }
+        } else if (net.getGameStarted() and playersCreated) {
             //SYNC
             val tmp = net.gameState
             if (tmp is GameState) gs = tmp
             
             val acts = net.getActions()
             for(a in acts){
-                when(a.name){
+                try {
+                    when (a.name) {
                     /**/
-                    "move" -> {
-                        when(a.params[0]){
-                            "right" -> gs.players[a.sender]!!.goRight = true
-                            "left" -> gs.players[a.sender]!!.goLeft = true
-                            "up" -> gs.players[a.sender]!!.goUp = true
-                            "down" -> gs.players[a.sender]!!.goDown = true
+                        "move" -> {
+                            when (a.params[0]) {
+                                "right" -> gs.players[a.sender]!!.goRight = true
+                                "left" -> gs.players[a.sender]!!.goLeft = true
+                                "up" -> gs.players[a.sender]!!.goUp = true
+                                "down" -> gs.players[a.sender]!!.goDown = true
+                            }
                         }
+                        "shot" -> gs.players[a.sender]!!.shot = true
+                        "direction" -> gs.players[a.sender]!!.weapon.mouseVec = Vector2f(a.params[0].toFloat(),
+                                a.params[1].toFloat())
                     }
-                    "shot" -> gs.players[a.sender]!!.shot = true
-                    "direction" -> gs.players[a.sender]!!.weapon.mouseVec = Vector2f(a.params[0].toFloat(),
-                            a.params[1].toFloat())
+                }catch(e: NullPointerException){
+                    println("${a.sender} alredy dead, skipping...")
                 }
             }
            /* for (a in acts) {
@@ -136,7 +147,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 */
                 }
             }*/
-            myControls(gc)
+            if(!isGameOver and playersCreated)myControls(gc)
             allMove(gc)
             var gun: Meelee
             for (i in gs.players) {
@@ -204,9 +215,14 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private fun deathCheck() {
         //if (gs.players[nick]!!.HP <= 0) gs.players.remove(nick)
         //Если работает, то я буду орать
+        val toKill = ArrayList<String>()
         for(p in gs.players){
-            if(p.value.HP <= 0)gs.players.remove(p.key)
+            if(p.value.HP <= 0) {
+                if(p.value.nick == nick)isGameOver = true
+                toKill.add(p.key)
+            }
         }
+        for(p in toKill)gs.players.remove(p)
 
         /*var flag = true
         while (flag) {
@@ -248,10 +264,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         }
 
         val gun = gs.players[nick]!!.weapon
-        gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
+        /*gun.mouseVec = Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat()
                 - 640,
                 MouseInfo.getPointerInfo().getLocation().getY().toFloat()
-                        - 360)
+                        - 360)*/
+        gun.mouseVec = Vector2f(input.mouseX.toFloat() - ((gc.width) / 2),
+                input.mouseY.toFloat() - ((gc.height) / 2))
         net.doAction("direction", asList("${gun.mouseVec.x}", "${gun.mouseVec.y}"))
     }
 
@@ -281,8 +299,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 g.drawString(p.nick, 10f, y)
                 y += 20
             }
-        } else {
-            camera.translate(g, gs.players[nick]!!, gc)
+        } else if(playersCreated){
+            if(!isGameOver)camera.translate(g, gs.players[nick]!!, gc)
             g.background = Color.blue
             map.render(0, 0)
             for (i in gs.players) {
@@ -290,5 +308,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 i.value.draw(g)
             }
         }
+        //g.color = Color.green
+        //g.fillOval(gc.width / 2f - 5f, gc.height / 2f - 5f, 10f, 10f)
     }
 }
