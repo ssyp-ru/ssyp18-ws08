@@ -18,6 +18,7 @@ fun main(args: Array<String>) {
     try {
         val appgc: AppGameContainer
         appgc = AppGameContainer(SimpleSlickGame("Simple Slick Game"))
+        appgc.setShowFPS(false)
         //appgc.setDisplayMode(1280, 720, true)
         appgc.setDisplayMode(1920, 1080, true)
         appgc.start()

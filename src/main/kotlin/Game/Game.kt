@@ -21,6 +21,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
     private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
+    //private lateinit var minimap: Minimap
+    private lateinit var minimapImage: Image
     private var tileID: Int = 0
     private lateinit var value: String
     private var mapHeight: Int = 0
@@ -60,14 +62,17 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
                 cells[i][j] = Cell(i * 32, j * 32, 0)
-                if (map.getTileId(i, j, 1) != 0){
-                    cells[i][j] = Cell(i * 32, j * 32, 1)
-                }
-                if (map.getTileId(i, j, 2) != 0){
-                    cells[i][j] = Cell(i * 32, j * 32, 2)
+                when{
+                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 1)
+                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 2)
+                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 4)
+                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 5)
+
                 }
             }
         }
+        //minimap = Minimap(cells, nick)
+        minimapImage = Image("res/map/Minimap.png")
         camera = Camera(map, mapWidth, mapHeight)
     }
 
@@ -200,6 +205,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 i.value.weapon.draw(g)
                 i.value.draw(g)
             }
+            //minimap.update(gs.players, g, gc, minimapImage)
         }
     }
 }
