@@ -2,6 +2,7 @@ package Game
 
 import org.newdawn.slick.GameContainer
 import org.newdawn.slick.Input
+import org.newdawn.slick.geom.Rectangle
 import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import java.util.*
@@ -39,9 +40,36 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         goLeft= false
         shot= false
     }
-    fun hit(balls:ArrayList<Player>, i:Int) {
+    fun hit(balls:ArrayList<Player>, i:Int, blocksWalk: ArrayList<Rectangle>, blocksFire: ArrayList<Rectangle>) {
 
-        for (k in (i + 1)..(balls.size - 1)){
+        for (k in 0..(blocksWalk.size - 1)){
+            if((((blocksWalk[k].x + blocksWalk[k].width) < (x - 20)) || (blocksWalk[k].x) > (x + 20)) &&
+                    (((blocksWalk[k].y + blocksWalk[k].height) < (y - 20)) || (blocksWalk[k].y) > (y + 20))){
+                when{
+                    ((blocksWalk[k].x + blocksWalk[k].width) < (x - 20)) -> x = blocksWalk[k].x +
+                            blocksWalk[k].width + 20
+                    ((blocksWalk[k].x) > (x + 20)) -> blocksWalk[k].x - 20
+                    ((blocksWalk[k].y + blocksWalk[k].height) < (y - 20)) -> y = blocksWalk[k].y +
+                            blocksWalk[k].height + 20
+                    ((blocksWalk[k].y) > (y + 20)) -> blocksWalk[k].y - 20
+                }
+            }
+        }
+        for (k in 0..(blocksFire.size - 1)){
+            if((((blocksFire[k].x + blocksFire[k].width) < (x - 20)) || (blocksFire[k].x) > (x + 20)) &&
+                    (((blocksFire[k].y + blocksFire[k].height) < (y - 20)) || (blocksFire[k].y) > (y + 20))){
+                when{
+                    ((blocksFire[k].x + blocksFire[k].width) < (x - 20)) -> x = blocksFire[k].x +
+                            blocksFire[k].width + 20
+                    ((blocksFire[k].x) > (x + 20)) -> blocksFire[k].x - 20
+                    ((blocksFire[k].y + blocksFire[k].height) < (y - 20)) -> y = blocksFire[k].y +
+                            blocksFire[k].height + 20
+                    ((blocksFire[k].y) > (y + 20)) -> blocksFire[k].y - 20
+                }
+            }
+        }
+
+        /*for (k in (i + 1)..(balls.size - 1)){
             val dis = distance(x, y, balls[k].x, balls[k].y)
             if (dis < 40) {
                 val b2 = Vector2f(balls[k].x - x, balls[k].y - y).normalise().scale((40 - dis) / 2)
@@ -54,6 +82,7 @@ class Player(var x: Float, var y: Float, var HP:Int, var goUp:Boolean = false, v
         }
         weapon.playerX = x
         weapon.playerY = y
+        */
     }
 
     private fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{

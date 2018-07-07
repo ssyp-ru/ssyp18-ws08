@@ -120,7 +120,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         deathCheck()
 
         for(i in 0..(arrayPlayers.size - 1)){
-            arrayPlayers[i].hit(arrayPlayers, i)
+            arrayPlayers[i].hit(arrayPlayers, i, blocksWalk, blocksFire)
         }
     }
 
