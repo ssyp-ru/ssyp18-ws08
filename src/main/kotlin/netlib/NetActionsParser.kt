@@ -21,7 +21,6 @@ class NetActionsParser(ip: String,
 
     override fun run() {
         val listPartitions = ArrayList<TopicPartition>()
-        println("(Network)Parser initialized!")
         for (p in players) {
             if (p.nick == nick) continue
             listPartitions.add(TopicPartition("-PLAYER-" + p.nick, 0))

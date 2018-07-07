@@ -13,7 +13,6 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.Arrays.asList
 import java.util.concurrent.locks.ReentrantLock
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane
 import kotlin.collections.ArrayList
 
 class NetSync(gs: Serializable,
@@ -30,17 +29,18 @@ class NetSync(gs: Serializable,
     private val syncTime: Long = 1000
     private var host = 0
     private val cHost = 1.5f
-    var prevSync = System.currentTimeMillis()
-    var playersList = ArrayList<String>()
-    fun setPlayers(pl: ArrayList<NetPlayer>){
-        if(!this.isAlive){
-            for(p in pl){
+    private var prevSync = System.currentTimeMillis()
+    private var playersList = ArrayList<String>()
+    fun setPlayers(pl: ArrayList<NetPlayer>) {
+        if (!this.isAlive) {
+            for (p in pl) {
                 playersList.add(p.nick)
             }
         }
     }
+
     var gameState: Serializable = gs
-        set(gs: Serializable) {
+        set(gs) {
             if (isHost) {
                 gsarrLock.lock()
                 gsarr = serialize(gs)
@@ -71,8 +71,6 @@ class NetSync(gs: Serializable,
         cons.assign(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
         cons.seekToEnd(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
         gsarr = serialize(gs)
-
-        println("(Network)Sync initiazized!")
     }
 
     fun setHost(b: Boolean) {
@@ -80,16 +78,14 @@ class NetSync(gs: Serializable,
         gsarr = serialize(gameState)
         gsarrLock.unlock()
         isHost = b
-
-        println(if (isHost) "ama host now" else "ama bomzh now")
     }
 
     override fun run() {
         prevSync = System.currentTimeMillis()
         while (true) {
             if (isHost) {
-                for(r in cons.poll(50)){
-                    if(r.key() == "host"){
+                for (r in cons.poll(50)) {
+                    if (r.key() == "host") {
                         setHost(r.value().toString(Charset.defaultCharset()) == nick)
                     }
                 }
@@ -97,38 +93,34 @@ class NetSync(gs: Serializable,
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
                 gsarrLock.unlock()
                 var playersString = "$host"
-                for(p in playersList){
+                for (p in playersList) {
                     playersString += "|$p"
                 }
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "playersList",
                         playersString.toByteArray(Charset.defaultCharset())))
                 Thread.sleep(syncTime)
             } else {
-                val records = cons.poll(50)
+                val records = cons.poll(25)
                 for (r in records) {
-                    when(r.key()){
+                    when (r.key()) {
                         "sync" -> {
                             prevSync = System.currentTimeMillis()
                             gameState = deserialize(r.value())
                         }
                         "host" -> {
-                            //println("recieved")
-                            println(r.value().toString())
                             setHost(r.value().toString() == nick)
                             host = playersList.indexOf(r.value().toString())
                         }
                         "playersList" -> {
                             val tmp = r.value().toString(Charset.defaultCharset()).split('|')
                             host = tmp[0].toInt()
-                            for(i in 0 until playersList.size) playersList[i] = tmp[i + 1]
+                            for (i in 0 until playersList.size) playersList[i] = tmp[i + 1]
                         }
                     }
                 }
-                if((System.currentTimeMillis() - prevSync) > (syncTime * cHost)){
-                    host = if(host < (playersList.size - 1)) (host + 1) else 0
-                    println(host)
-                    if(nick == playersList[host]){
-                        //println("send")
+                if ((System.currentTimeMillis() - prevSync) > (syncTime * cHost)) {
+                    host = if (host < (playersList.size - 1)) (host + 1) else 0
+                    if (nick == playersList[host]) {
                         prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "host",
                                 nick.toByteArray(Charset.defaultCharset())))
                         setHost(true)
@@ -160,7 +152,7 @@ class NetSync(gs: Serializable,
                 is Serializable -> return obj
                 else -> throw Exception()
             }
-        }catch(e: Exception){
+        } catch (e: Exception) {
             return gameState
         }
     }

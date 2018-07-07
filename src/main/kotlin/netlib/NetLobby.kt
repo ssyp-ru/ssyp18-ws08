@@ -8,7 +8,7 @@ import java.util.concurrent.locks.ReentrantLock
 class NetLobby(private val gameName: String,
                private val isHost: Boolean,
                private val nick: String,
-               private val ip: String,
+               ip: String,
                private val net: Network,
                private val players: ArrayList<NetPlayer>,
                private val playersLock: ReentrantLock) :
@@ -21,7 +21,6 @@ class NetLobby(private val gameName: String,
     private var exit = false
     var hostExited = false
     var map = ""
-    //private var mapLock = ReentrantLock()
 
     override fun run() {
         cons.assign(asList(TopicPartition(topicName, PartitionID.LOBBY.ordinal)))
@@ -39,21 +38,6 @@ class NetLobby(private val gameName: String,
     }
 
     private fun waitPlayers() {
-//        val syncPart = TopicPartition(topicName, PartitionID.SYNC.ordinal)
-//        val syncCons = createConsumer(ip, nick)
-//        syncCons.assign(asList(syncPart))
-//        var off = syncCons.endOffsets(asList(syncPart))[syncPart]!! - 1
-//        syncCons.seek(syncPart, off)
-//        var gameFree = true
-//        try {
-//            gameFree = (System.currentTimeMillis() - syncCons.poll(20).last().timestamp()) > 10000
-//        }catch (e: Exception){}
-//
-//        if(!gameFree){
-//            hostExited = true
-//            exit = true
-//            return
-//        }
         val part = TopicPartition(topicName, 0)
         cons.seekToEnd(asList(part))
         var records = cons.poll(10)
@@ -62,7 +46,6 @@ class NetLobby(private val gameName: String,
             cons.seek(part, offset)
             records = cons.poll(10)
             if (records.isEmpty) continue
-            //println("$offset")
             offset--
         }
         cons.seek(part, ++offset)
@@ -86,7 +69,6 @@ class NetLobby(private val gameName: String,
                     }
                     "map" -> {
                         map = r.value()
-                        //println("recieved map name:$map")
                     }
                     "state" -> if (r.value() == "ready")isGameReady = true
 

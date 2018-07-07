@@ -1,10 +1,10 @@
 package GUILobby
 
-import GUI.Button
+import gui.Button
 import org.newdawn.slick.GameContainer
 import org.newdawn.slick.Image
 
-class ChangeMap(gc: GameContainer) : Button(gc,
+class ChangeMap(gc: GameContainer) : Button(
         imageCommon = Image("res/changemap1.png"),
         imageLighted = Image("res/changemap2.png"),
         imageClicked = Image("res/changemap3.png"),

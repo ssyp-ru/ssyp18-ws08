@@ -1,6 +1,6 @@
 package GUILobby
 
-import GUI.State
+import gui.State
 import netlib.Network
 import org.newdawn.slick.*
 import java.util.*

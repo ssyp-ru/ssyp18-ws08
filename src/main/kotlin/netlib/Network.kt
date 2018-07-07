@@ -11,12 +11,12 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-class Network(private val ip: String,
+class Network(ip: String,
               private val gameName: String,
               private val isHost: Boolean,
               private val nick: String,
               gs: Serializable,
-              ddefaultMap: String) {
+              defaultMap: String) {
     private val prod = createProducer(ip)
     private var lobby: NetLobby
     private var lobbyTopicName = ""
@@ -32,8 +32,8 @@ class Network(private val ip: String,
 
     init {
         lobby = NetLobby(gameName, isHost, nick, ip, this, players, playersLock)
-        lobby.setDaemon(true)
-        lobby.map = ddefaultMap
+        lobby.isDaemon = true
+        lobby.map = defaultMap
         lobby.start()
         lobbyTopicName = createLobbyTopicName(gameName)
         actionsParser = NetActionsParser(ip, players, nick, actionsLock)
@@ -46,7 +46,7 @@ class Network(private val ip: String,
         get() {
             return syncer.gameState
         }
-        set(gs: Serializable) {
+        set(gs) {
             syncer.gameState = gs
         }
 
@@ -66,11 +66,8 @@ class Network(private val ip: String,
     fun startGame() {
         if (isHost) {
             prod.send(ProducerRecord(lobbyTopicName, PartitionID.LOBBY.ordinal, "state", "ready"))
-            //val toSend =
-            //prod.send(ProducerRecord(lobbyTopicName, PartitionID.LOBBY.ordinal, "ready", "ready"))
         }
         while (!gameStarted) {
-            print("")
         }
         syncer.setPlayers(players)
         actionsParser.start()
@@ -117,7 +114,6 @@ class Network(private val ip: String,
             lobby.map = m
             prod.send(ProducerRecord(createLobbyTopicName(gameName),
                     PartitionID.LOBBY.ordinal, "map", m)).get()
-            //println("sent map name:${lobby.map}")
         }
     }
 }

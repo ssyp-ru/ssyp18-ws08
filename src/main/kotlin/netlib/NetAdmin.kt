@@ -17,7 +17,6 @@ class NetAdmin(ip: String) {
     }
 
     fun createTopic(topicName: String, parts: Int) {
-        println("(Adm)creating topic $topicName")
         admin.createTopics(listOf(NewTopic(topicName, parts, 3)))
     }
 
