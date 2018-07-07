@@ -20,14 +20,14 @@ class NetLobby(private val gameName: String,
     private var isGameReady = false
 
     override fun run() {
-        cons.assign(asList(TopicPartition(topicName, Network.LOBBY)))
-        cons.seekToEnd(asList(TopicPartition(topicName, Network.LOBBY)))
+        cons.assign(asList(TopicPartition(topicName, PartitionID.LOBBY.ordinal)))
+        cons.seekToEnd(asList(TopicPartition(topicName, PartitionID.LOBBY.ordinal)))
         if (isHost) {
             if (!adm.lisTopics().contains(topicName)) adm.createTopic(topicName, 3)
-            prod.send(ProducerRecord(topicName, Network.LOBBY, "newGame", gameName)).get()
+            prod.send(ProducerRecord(topicName, PartitionID.LOBBY.ordinal, "newGame", gameName)).get()
         }
         adm.createTopic("-PLAYER-$nick", 1)
-        prod.send(ProducerRecord(topicName, Network.LOBBY, "player", nick)).get()
+        prod.send(ProducerRecord(topicName, PartitionID.LOBBY.ordinal, "player", nick)).get()
         waitPlayers()
         net.setGameStarted()
         if (!isHost) net.startGame()

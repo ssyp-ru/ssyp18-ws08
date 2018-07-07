@@ -65,7 +65,7 @@ class Network(private val ip: String,
     @Synchronized
     fun startGame() {
         if (isHost) {
-            prod.send(ProducerRecord(lobbyTopicName, Network.LOBBY, "state", "ready"))
+            prod.send(ProducerRecord(lobbyTopicName, PartitionID.LOBBY.ordinal, "state", "ready"))
         }
         while (!gameStarted) {
             print("")
@@ -74,7 +74,7 @@ class Network(private val ip: String,
         syncer.start()
         onliner = NetOnline(nick, ip, lobbyTopicName, getPlayersAsHashMap(), syncer)
         onliner!!.setDaemon(true)
-        onliner!!.start()
+        //onliner!!.start()
     }
 
     fun setGameStarted() {
@@ -103,15 +103,17 @@ class Network(private val ip: String,
         return toOut
     }
 
-    companion object {
+    /*companion object {
         const val LOBBY = 0
         const val SYNC = 1
         const val ONLINE = 2
-    }
-    enum class PartitionID{
-        LOBBY, SYNC, ONLINE
-    }
+    }*/
 
+
+}
+
+enum class PartitionID{
+    LOBBY, SYNC, ONLINE
 }
 
 fun createConsumer(ip: String, gid: String): KafkaConsumer<String, String> {

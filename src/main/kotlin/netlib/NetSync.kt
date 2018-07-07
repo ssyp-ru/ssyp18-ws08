@@ -51,8 +51,8 @@ class NetSync(gs: Serializable,
         prodProperties.setProperty("acks", "1")
         prod = KafkaProducer(prodProperties)
 
-        cons.assign(asList(TopicPartition(topicName, Network.SYNC)))
-        cons.seekToEnd(asList(TopicPartition(topicName, Network.SYNC)))
+        cons.assign(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
+        cons.seekToEnd(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
         //gameState = gs
         gsarr = serialize(gs)
 
@@ -77,7 +77,7 @@ class NetSync(gs: Serializable,
         while (true) {
             if (isHost) {
                 gsarrLock.lock()
-                prod.send(ProducerRecord(topicName, Network.SYNC, "sync", gsarr))
+                prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
                 gsarrLock.unlock()
                 //println("send sync")
                 Thread.sleep(2950)
