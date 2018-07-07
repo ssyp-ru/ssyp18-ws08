@@ -13,59 +13,61 @@ import kotlin.collections.HashMap
 import kotlin.math.*
 
 class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var velocity: Vector2f = Vector2f(0f, 0f),
-             var shot:Boolean = false, val mouseVec: Vector2f,
-             val IDWeapon:Int = 0, var isDead : Boolean = false): Serializable {
+             var shot:Boolean = false, val mouseVec: Vector2f, val R:Float = 20F, val speed:Float = 5F,
+             val IDWeapon:Int = 1, var isDead : Boolean = false): Serializable {
     var weapon = when (IDWeapon){
-        1 -> Rapier(x, y, mouseVec)
-//        101 -> Pistol(x, y, mouseVec, R)
-        else -> Knife(x, y, mouseVec)
+        1 -> Rapier(x, y, R, mouseVec)
+        101 -> Pistol(x, y, R, mouseVec)
+        else -> Knife(x, y, R, mouseVec)
     }
     var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
 
     fun draw(g: org.newdawn.slick.Graphics) {
         g.color = colorPlayer
-        g.fillOval(x, y, 40F, 40F)
+        g.fillOval(x, y, 2*R, 2*R)
     }
-    fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player){
-        val tempForSpeed = 5F
+    fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player, arrBullets:ArrayList<Bullets>){
+        val tempForSpeed = speed
         val movement = Vector2f(0F, 0F)
         movement.x += velocity.x
         movement.y += velocity.y
         movement.normalise().scale(tempForSpeed)
         x += movement.x
         y += movement.y
-        if (shot && HP>0) weapon.attack(arrayPlayers, i)
+        if (shot && HP>0) {
+            weapon.attack(arrayPlayers, i, arrBullets)
+        }
         velocity = Vector2f(0f, 0f)
         shot= false
     }
-    fun hit(balls:ArrayList<Player>, i:Int) {
-        for (k in (i + 1)..(balls.size - 1)){
-            if(!!balls[k].isDead)continue
-            val dis = distance(x, y, balls[k].x, balls[k].y)
-            if (dis < 40) {
-                val b2 = Vector2f(balls[k].x - x, balls[k].y - y).normalise().scale((40 - dis) / 2)
-                val b1 = Vector2f(x - balls[k].x, y - balls[k].y).normalise().scale((40 - dis) / 2)
+
+    fun hit(arrPLayers:ArrayList<Player>, i:Int) {
+        for (k in (i + 1)..(arrPLayers.size - 1)){
+            if (arrPLayers[k].isDead) continue
+            val dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)
+            if (dis < R + arrPLayers[k].R) {
+                val b2 = Vector2f(arrPLayers[k].x - x, arrPLayers[k].y - y).normalise().scale((R + arrPLayers[k].R - dis) / 2)
+                val b1 = Vector2f(x - arrPLayers[k].x, y - arrPLayers[k].y).normalise().scale((R + arrPLayers[k].R - dis) / 2)
                 x += b1.x
                 y += b1.y
-                balls[k].x += b2.x
-                balls[k].y += b2.y
+                arrPLayers[k].x += b2.x
+                arrPLayers[k].y += b2.y
             }
         }
         weapon.playerX = x
         weapon.playerY = y
     }
 
-    private fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
-        return(sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
-    }
-
     fun drawHP(g : Graphics, x : Float, y : Float){
-        var maxHP = 5
-        var widthBar : Float = 100f
-        var heightBar : Float = 20f
+        if(isDead) return
+        val maxHP = 5
+        val widthBar : Float = 100f
+        val heightBar : Float = 20f
         g.color = Color(0f, 0f, 0f)
         g.fillRect(x - 2, y, widthBar + 4, heightBar + 4)
         g.color = Color(1f,0f,0f)
         g.fillRect(x, y + 2, widthBar * this.HP / maxHP, heightBar)
+        g.color = Color.white
+        g.drawString("HP: $HP", x, y + 2.5f)
     }
 }
