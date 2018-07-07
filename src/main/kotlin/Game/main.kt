@@ -19,7 +19,7 @@ fun main(args: Array<String>) {
         val appgc: AppGameContainer
         appgc = AppGameContainer(SimpleSlickGame("Simple Slick Game"))
         //appgc.setDisplayMode(1280, 720, true)
-        appgc.setDisplayMode(1280, 720, true)
+        appgc.setDisplayMode(1920, 1080, true)
         appgc.start()
     } catch (ex: SlickException) {
         Logger.getLogger(SimpleSlickGame::class.java.name).log(Level.SEVERE, null, ex)

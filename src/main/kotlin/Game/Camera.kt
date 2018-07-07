@@ -13,7 +13,7 @@ class Camera(map: TiledMap, private val mapWidth: Int, private val mapHeight: In
     private var viewPort: Rectangle
 
     init {
-        viewPort = Rectangle(0f, 0f, 640f, 480f)
+        viewPort = Rectangle(0f, 0f, 1920f, 1080f)
     }
 
     fun translate(g: Graphics, hero: Player, gc: GameContainer) {
@@ -23,7 +23,6 @@ class Camera(map: TiledMap, private val mapWidth: Int, private val mapHeight: In
         /*x = gc.screenWidth / 2 - hero.x.toInt() - 60
         y = gc.screenHeight / 2 - hero.y.toInt() - 40*/
         //println(gc.screenWidth)
-        g.drawString("${gc.width}", 10f, 50f)
         x = (gc.width / 2) - hero.x.toInt() - 20
         y = (gc.height / 2) - hero.y.toInt() - 20
 

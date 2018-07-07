@@ -40,7 +40,19 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:B
         shot= false
     }
 
-    fun hit(arrPLayers:ArrayList<Player>, i:Int) {
+    fun hit(arrPLayers:ArrayList<Player>, i:Int, cells:Array<Array<Cell>>) {
+        for (n in 0..(cells.size - 1)){
+            for (m in 0..(cells.size - 1)){
+                if (cells[n][m].type > 0) {
+                    val dis = distance(x, y, (cells[n][m].x.toFloat()), (cells[n][m].y.toFloat()))
+                    if ((dis < R + 16)) {
+                        val b1 = Vector2f(x - (cells[n][m].x), y - (cells[n][m].y)).normalise().scale((R - dis + 16) / 2)
+                        x += b1.x
+                        y += b1.y
+                    }
+                }
+            }
+        }
         for (k in (i + 1)..(arrPLayers.size - 1)){
             val dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)
             if (dis < R + arrPLayers[k].R) {
