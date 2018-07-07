@@ -201,6 +201,10 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 if(i.value.isDead)continue
                 i.value.weapon.draw(g)
                 i.value.draw(g)
+                if(i.key == nick){
+                    g.color = Color.yellow
+                    g.drawString("HP: ${i.value.HP}", i.value.x, i.value.y - 50)
+                }
             }
         }
     }
