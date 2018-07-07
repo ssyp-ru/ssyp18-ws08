@@ -39,7 +39,7 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var goUp:B
         goLeft= false
         shot= false
     }
-    
+
     fun hit(arrPLayers:ArrayList<Player>, i:Int) {
         for (k in (i + 1)..(arrPLayers.size - 1)){
             val dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)

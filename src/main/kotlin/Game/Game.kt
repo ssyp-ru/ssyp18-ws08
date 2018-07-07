@@ -25,13 +25,10 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 //            false, Vector2f(MouseInfo.getPointerInfo().getLocation().getX().toFloat() - 668F,
 //            MouseInfo.getPointerInfo().getLocation().getY().toFloat() - 384F), 1)
     private lateinit var map: TiledMap
-    private lateinit var blockedWalk: Array<Array<Boolean>>
-    private lateinit var blockedFire: Array<Array<Boolean>>
-    private lateinit var blocksWalk: ArrayList<Rectangle>
-    private lateinit var blocksFire: ArrayList<Rectangle>
+    private lateinit var cells: Array<Array<cell>>
     private var tileID: Int = 0
-    private val layerWalk: Int = 0
-    private val layerFire: Int = 1
+    private val layerWalk: Int = 1
+    private val layerFire: Int = 2
     private lateinit var value: String
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
@@ -65,19 +62,16 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         tileWidth = map.tileWidth
         for (i in 0..99) {
             for (j in 0..99) {
+                cells[i][j] = cell(i * 32, j * 32, 0)
                 tileID = map.getTileId(i, j, layerWalk)
                 value = map.getTileProperty(tileID, "blocked", "false")
                 if (value.equals("true")) {
-                    blockedWalk[i][j] = true
-                    blocksWalk.add(Rectangle(i * tileWidth.toFloat(), j * tileHeight.toFloat(),
-                            tileWidth.toFloat(), tileHeight.toFloat()))
+                    cells[i][j] = cell(i * 32, j * 32, 1)
                 }
                 tileID = map.getTileId(i, j, layerFire)
                 value = map.getTileProperty(tileID, "blocked", "false")
                 if (value.equals("true")) {
-                    blockedFire[i][j] = true
-                    blocksFire.add(Rectangle(i * tileWidth.toFloat(), j * tileHeight.toFloat(),
-                            tileWidth.toFloat(), tileHeight.toFloat()))
+                    cells[i][j] = cell(i * 32, j * 32, 2)
                 }
             }
         }
