@@ -18,6 +18,8 @@ class NetLobby(private val gameName: String,
     private val adm = NetAdmin(ip)
     private val topicName = "-LOBBY-$gameName"
     private var isGameReady = false
+    private var exit = false
+    var hostExited = false
 
     override fun run() {
         cons.assign(asList(TopicPartition(topicName, PartitionID.LOBBY.ordinal)))
@@ -29,6 +31,7 @@ class NetLobby(private val gameName: String,
         adm.createTopic("-PLAYER-$nick", 1)
         prod.send(ProducerRecord(topicName, PartitionID.LOBBY.ordinal, "player", nick)).get()
         waitPlayers()
+        if(exit or hostExited)return
         net.setGameStarted()
         if (!isHost) net.startGame()
     }
@@ -46,15 +49,32 @@ class NetLobby(private val gameName: String,
             offset--
         }
         cons.seek(part, ++offset)
-        while (!isGameReady) {
+        while (!isGameReady or exit) {
             records = cons.poll(100)
             for (r in records) {
-                playersLock.lock()
-                if (r.key() == "player") players.add(NetPlayer(r.value(), true, false))
-                playersLock.unlock()
-                if ((r.key() == "state") and (r.value() == "ready")) isGameReady = true
+                when(r.key()) {
+                    "player" -> {
+                        playersLock.lock()
+                        players.add(NetPlayer(r.value(), true, false))
+                        playersLock.unlock()
+                    }
+                    "leave" -> {
+                        if(r.value() == players[0].nick){
+                            println("olol")
+                            hostExited = true
+                            return
+                        }
+                        players.remove(NetPlayer(r.value(), true, false))
+                    }
+                    "state" -> if (r.value() == "ready")isGameReady = true
+
+                }
             }
         }
         if (isHost) players[0].isHost = true
+    }
+
+    fun leave(){
+        exit = true
     }
 }

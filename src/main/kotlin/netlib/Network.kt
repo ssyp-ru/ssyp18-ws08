@@ -12,7 +12,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class Network(private val ip: String,
-              gameName: String,
+              private val gameName: String,
               private val isHost: Boolean,
               private val nick: String,
               gs: Serializable) {
@@ -26,6 +26,9 @@ class Network(private val ip: String,
     //private var onliner: NetOnline? = null
     private var playersLock = ReentrantLock()
     private val actionsLock = ReentrantLock()
+    var hostExited
+        get() = lobby.hostExited
+        set(b){}
 
     init {
         lobby = NetLobby(gameName, isHost, nick, ip, this, players, playersLock)
@@ -102,6 +105,13 @@ class Network(private val ip: String,
             toOut[players[i].nick]!!.position = i
         }
         return toOut
+    }
+
+    fun leaveLobby(){
+        if(!gameStarted){
+            prod.send(ProducerRecord(createLobbyTopicName(gameName),
+                    PartitionID.LOBBY.ordinal, "leave", nick)).get()
+        }
     }
 
     /*companion object {

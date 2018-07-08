@@ -13,6 +13,7 @@ import java.awt.Font
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
 import kotlin.math.pow
+import kotlin.system.exitProcess
 
 class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
@@ -47,11 +48,21 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
         playersCreated = false
     }
+
+    override fun keyPressed(key: Int, c: Char) {
+        //print("ff")
+        when(key){
+            Input.KEY_ESCAPE -> {
+                leaveLobby()
+                exitProcess(0)
+            }
+        }
+    }
+
     override fun init(gc: GameContainer) {
         gc.setVSync(true)
         gc.alwaysRender = true
 
-        //получаем начальные данные
 
         map = TiledMap("res/map/FirstFowlMap.TMX")
         mapHeight = map.height * map.tileHeight
@@ -227,7 +238,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     override fun render(gc: GameContainer, g: Graphics) {
         val HPbarDislocationHeight = 52.5f
         val HPbarDislocationWidth =  27.5f
+
         if (!net.getGameStarted()) {
+            if(net.hostExited){
+                println("Host livnul, rashodimsya...")
+                exitProcess(0)
+            }
             var y = 0f
             for (p in net.getPlayers()) {
                 g.drawString(p.nick, 2.88f, y)
@@ -256,5 +272,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
             //minimap.update(gs.players, g, gc, minimapImage)
         }
+    }
+    fun leaveLobby(){
+        net.leaveLobby()
     }
 }
