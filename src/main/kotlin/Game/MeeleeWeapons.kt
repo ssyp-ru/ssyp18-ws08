@@ -20,8 +20,8 @@ abstract class Meelee(val attackRange:Float,
         x = playerX - playerR * attackRange / 2
         y = playerY - playerR * attackRange / 2
         r = playerR * (attackRange + 2)
-        g.color = if (cooldownCounter >= cooldown) Color.cyan else Color.red
-        val temp = 60 * atan(mouseVec.y / mouseVec.x)
+        g.color = Color.transparent
+        val temp = toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x)
         val tempAngle:Float
         if (mouseVec.x >= 0) {
             tempAngle = attackAngle * cooldownCounter / cooldown / 2

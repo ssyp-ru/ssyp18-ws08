@@ -1,9 +1,7 @@
 package Game
 
-import org.newdawn.slick.Color
-import org.newdawn.slick.GameContainer
-import org.newdawn.slick.Graphics
-import org.newdawn.slick.Input
+import org.newdawn.slick.Animation
+import org.newdawn.slick.*
 import org.newdawn.slick.geom.Rectangle
 import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
@@ -30,6 +28,7 @@ class Player(var x: Float,
 
     var arrayMeeleeWeapon = ArrayList<Meelee>()
     var arrayRangedWeapon = ArrayList<RangedWeapon>()
+    var HP = maxHP
 
     init{
         arrayMeeleeWeapon.add(Knife(x, y, R, mouseVec))
@@ -40,13 +39,20 @@ class Player(var x: Float,
 //        arrayRangedWeapon.add(Awp(x, y, R, mouseVec))
     }
 
-    var HP = maxHP
-    var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
-
-
     fun draw(g: org.newdawn.slick.Graphics) {
-        g.color = colorPlayer
-        g.fillOval(x, y, 2*R, 2*R)
+        var arrayOfImages = PlayerAnimations(0).ArrayImagesReturn
+        if (mouseVec.x >= 0) {
+            arrayOfImages[0].setRotation(toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x) - toDegree(PI) / 2)
+        } else {
+            arrayOfImages[0].setRotation(toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x) - toDegree(PI)* 3 / 2)
+        }
+        arrayOfImages[0].draw(x, y)
+        /*if (numRangedWeapon == 0) {
+            for(i in 0..5) {
+                pistolAnimationImages[i].setRotation(atan(mouseVec.x/mouseVec.y))
+            }
+            pistolAnimation.draw(x + R, y + R)
+        }*/
     }
 
     fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player, arrBullets:ArrayList<Bullets>){
