@@ -82,7 +82,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDMeeleeWeapon = 1)
+                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDMeeleeWeapon = 1, IDRangedWeapon = 1)
             }
             playersCreated = true
             for(p in gs.players){
@@ -243,7 +243,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 }
             }
             if (gs.players[nick] == null) return
-            gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - 27.5f, gs.players[nick]!!.y - 52.5f)
+            gs.players[nick]!!.drawReload(g, gs.players[nick]!!.x - 27.5f, gs.players[nick]!!.y - 52.5f)
             //minimap.update(gs.players, g, gc, minimapImage)
         }
     }

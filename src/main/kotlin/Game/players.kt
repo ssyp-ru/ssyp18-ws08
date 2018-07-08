@@ -12,18 +12,32 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.math.*
 
-class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var velocity: Vector2f = Vector2f(0f, 0f),
-             var shot:Boolean = false,  var punch:Boolean = false, var mouseVec: Vector2f, val R:Float = 16F, val speed:Float = 5F,
-             val IDMeeleeWeapon:Int = 0, val IDRangedWeapon:Int = 0, var isDead : Boolean = false): Serializable {
+class Player(var x: Float,
+             var y: Float,
+             private var maxHP:Int = 5,
+             val nick:String,
+             var velocity: Vector2f = Vector2f(0f, 0f),
+             var shot:Boolean = false,
+             var punch:Boolean = false,
+             var mouseVec: Vector2f,
+             val R:Float = 16F,
+             val speed:Float = 5F,
+             val IDMeeleeWeapon:Int = 0,
+             val IDRangedWeapon:Int = 0,
+             var kills:Int = 0,
+             var deaths:Int = 0,
+             var isDead : Boolean = false): Serializable {
     var meeleeWeapon = when (IDMeeleeWeapon){
         1 -> Rapier(x, y, R, mouseVec)
+        2 -> DeathPuls(x, y, R, mouseVec)
         else -> Knife(x, y, R, mouseVec)
     }
     var rangedWeapon = when (IDRangedWeapon){
         1 -> MiniGun(x, y, R, mouseVec)
+        2 -> Awp(x, y, R, mouseVec)
         else -> Pistol(x, y, R, mouseVec)
     }
-
+    var HP = maxHP
     var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
 
     fun draw(g: org.newdawn.slick.Graphics) {
@@ -85,15 +99,27 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
         rangedWeapon.playerY = y
     }
 
-    fun drawHP(g : Graphics, x : Float, y : Float){
+    fun drawReload(g : Graphics, x : Float, y : Float){
         if(isDead) return
         val maxHP = 5
+        val widthReloadBar : Float = 100f
+        val heightReloadBar : Float = 9f
+        g.color = Color(0f, 0f, 0f)
+        g.fillRect(x - 2, y + 90F, widthReloadBar + 4, heightReloadBar)
+        g.color = Color.yellow
+        g.fillRect(x, y + 92F, widthReloadBar * rangedWeapon.cooldownCounter / rangedWeapon.cooldown, heightReloadBar - 4F)
+        g.color = Color.white
+        g.drawString("${rangedWeapon.ammoCounter}", x, y + 60F)
+    }
+
+    fun drawHP(g : Graphics, x : Float, y : Float){
+        if(isDead) return
         val widthReloadBar : Float = 100f
         val heightReloadBar : Float = 20f
         g.color = Color(0f, 0f, 0f)
         g.fillRect(x - 2, y, widthReloadBar + 4, heightReloadBar)
         g.color = Color.yellow
-        g.fillRect(x, y + 2F, widthReloadBar * rangedWeapon.cooldownCounter / rangedWeapon.cooldown, heightReloadBar - 4F)
+        g.fillRect(x, y + 2F, widthReloadBar * HP / maxHP, heightReloadBar - 4F)
         g.color = Color.white
         g.drawString("ammo: ${rangedWeapon.ammoCounter}", x, y - 4F)
     }

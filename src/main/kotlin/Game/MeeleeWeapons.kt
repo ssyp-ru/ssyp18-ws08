@@ -5,7 +5,10 @@ import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import kotlin.math.*
 
-abstract class Meelee(val attackRange:Float, val attackAngle:Float, override val cooldown:Float, val damage:Int,
+abstract class Meelee(val attackRange:Float,
+                      val attackAngle:Float,
+                      override val cooldown:Float,
+                      val damage:Int,
                       val ID:Int):Weapon(), Serializable{
     override var cooldownCounter = 0F
     var x = 0F
@@ -39,13 +42,11 @@ abstract class Meelee(val attackRange:Float, val attackAngle:Float, override val
     }
     */
     override fun attack(arrPlayers:HashMap<String, Player>, k:Player, arrBullets:ArrayList<Bullets>){
-        println("attack begin meelee")
         if (cooldownCounter == cooldown){
             cooldownCounter = 0F
-            for (i in arrPlayers){
-                if (hitScan(i.value) && i.value != k) i.value.HP -= damage
+            for (player in arrPlayers){
+                if (hitScan(player.value) && player.value != k) player.value.HP -= damage
             }
-            println("attack end")
         }
     }
 
@@ -64,8 +65,8 @@ abstract class Meelee(val attackRange:Float, val attackAngle:Float, override val
 }
 
 class Knife(override var playerX: Float, override var playerY: Float, override val playerR: Float,
-            override var mouseVec:Vector2f): Meelee(1F, 90F, 30F, 1, 0) {}
+            override var mouseVec:Vector2f): Meelee(1F, 90F, 30F, 3, 0) {}
 class Rapier(override var playerX: Float, override var playerY: Float, override val playerR: Float,
-             override var mouseVec:Vector2f): Meelee(5F, 15F, 60F, 1, 1) {}
+             override var mouseVec:Vector2f): Meelee(5F, 15F, 60F, 4, 1) {}
 class DeathPuls(override var playerX: Float, override var playerY: Float, override val playerR: Float,
-                override var mouseVec:Vector2f) : Meelee(1000F, 0.1F, 180F, 1, 2) {}
+                override var mouseVec:Vector2f) : Meelee(5000F, 0.1F, 180F, 8, 2) {}
