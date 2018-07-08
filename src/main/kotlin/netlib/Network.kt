@@ -74,7 +74,7 @@ class Network(private val ip: String,
         syncer.start()
         onliner = NetOnline(nick, ip, lobbyTopicName, getPlayersAsHashMap(), syncer)
         onliner!!.setDaemon(true)
-        //onliner!!.start()
+        onliner!!.start()
     }
 
     fun setGameStarted() {
