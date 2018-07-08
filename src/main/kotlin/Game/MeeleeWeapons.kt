@@ -47,7 +47,10 @@ abstract class Meelee(val attackRange:Float,
             for (player in arrPlayers){
                 if (hitScan(player.value) && player.value != k) {
                     player.value.HP -= damage
-                    if (player.value.HP <= 0) ++k.kills
+                    if (player.value.HP <= 0){
+                        ++k.kills
+                        ++k.killStreak
+                    }
                 }
             }
         }

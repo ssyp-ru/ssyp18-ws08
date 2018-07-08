@@ -105,21 +105,35 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             
             val acts = net.getActions()
             for(a in acts){
+                val gamer = gs.players[a.sender]!!
                 when (a.name) {
                     /**/
-                    "move" -> gs.players[a.sender]!!.velocity.add(Vector2f(a.params[0].toFloat(),
+                    "move" -> gamer.velocity.add(Vector2f(a.params[0].toFloat(),
                             a.params[1].toFloat()))
-                    "shot" -> gs.players[a.sender]!!.shot = true
-                    "punch" -> gs.players[a.sender]!!.punch = true
-                    "direction" -> gs.players[a.sender]!!.mouseVec = Vector2f(a.params[0].toFloat(),
+                    "shot" -> gamer.shot = true
+                    "punch" -> gamer.punch = true
+                    "direction" -> gamer.mouseVec = Vector2f(a.params[0].toFloat(),
                             a.params[1].toFloat())
-                    "ressurection" -> {gs.players[a.sender]!!.x = a.params[0].toFloat()
-                        gs.players[a.sender]!!.y = a.params[1].toFloat()
-                        gs.players[a.sender]!!.HP = gs.players[a.sender]!!.maxHP
-                        ++gs.players[a.sender]!!.deaths
+                    "ressurection" -> {gamer.x = a.params[0].toFloat()
+                        gamer.y = a.params[1].toFloat()
+                        gamer.HP = gamer.maxHP
+                        ++gamer.deaths
+                        gamer.killStreak = 0
+                        gamer.arrayRangedWeapon = ArrayList<RangedWeapon>()
+                        gamer.arrayMeeleeWeapon = ArrayList<Meelee>()
+                        gamer.arrayMeeleeWeapon.add(Knife(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
                     }
-                    "meeleeWeapon" -> gs.players[a.sender]!!.numMeeleeWeapon = a.params[0].toInt()
-                    "rangedWeapon" -> gs.players[a.sender]!!.numRangedWeapon = a.params[0].toInt()
+                    "numMeeleeWeapon" -> gamer.numMeeleeWeapon = a.params[0].toInt()
+                    "numRangedWeapon" -> gamer.numRangedWeapon = a.params[0].toInt()
+                    "getMeelee" -> when (a.params[0]){
+                        "rapier" -> gamer.arrayMeeleeWeapon.add(Rapier(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
+                        "DP" -> gamer.arrayMeeleeWeapon.add(DeathPuls(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
+                    }
+                    "getRanged" -> when (a.params[0]){
+                        "pistol" -> gamer.arrayRangedWeapon.add(Pistol(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
+                        "MG" -> gamer.arrayRangedWeapon.add(MiniGun(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
+                        "awp" -> gamer.arrayRangedWeapon.add(Awp(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
+                    }
                 }
             }
             if(gs.players.containsKey(nick))myControls(gc)
@@ -155,57 +169,57 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 //    }
 
     private fun myControls(gc: GameContainer) {
+        val gm = gs.players[nick]!!
         val input = gc.input
         if (input.isKeyDown(Input.KEY_D)) {
-            gs.players[nick]!!.velocity.x += 1f
+            gm.velocity.x += 1f
         }
         if (input.isKeyDown(Input.KEY_A)) {
-            gs.players[nick]!!.velocity.x -= 1f
+            gm.velocity.x -= 1f
         }
         if (input.isKeyDown(Input.KEY_W)) {
-            gs.players[nick]!!.velocity.y -= 1f
+            gm.velocity.y -= 1f
         }
         if (input.isKeyDown(Input.KEY_S)) {
-            gs.players[nick]!!.velocity.y += 1f
+            gm.velocity.y += 1f
         }
-        gs.players[nick]!!.velocity = gs.players[nick]!!.velocity.normalise()
-        net.doAction("move", asList("${gs.players[nick]!!.velocity.x}", "${gs.players[nick]!!.velocity.y}"))
+        gm.velocity = gm.velocity.normalise()
+        net.doAction("move", asList("${gm.velocity.x}", "${gm.velocity.y}"))
 
         when {
             input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) -> {
                 net.doAction("shot", asList(""))
-                gs.players[nick]!!.shot = true
+                gm.shot = true
             }
             input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) -> {
                 net.doAction("punch", asList(""))
-                gs.players[nick]!!.punch = true
+                gm.punch = true
             }
             input.isKeyPressed(Input.KEY_1) -> {
-                net.doAction("rangedWeapon", asList("0"))
-                gs.players[nick]!!.numRangedWeapon = 0
+                net.doAction("numRangedWeapon", asList("0"))
+                gm.numRangedWeapon = 0
             }
             input.isKeyPressed(Input.KEY_2) -> {
-                net.doAction("rangedWeapon", asList("1"))
-                gs.players[nick]!!.numRangedWeapon = 1
+                net.doAction("numRangedWeapon", asList("1"))
+                gm.numRangedWeapon = 1
             }
             input.isKeyPressed(Input.KEY_3) -> {
-                net.doAction("rangedWeapon", asList("2"))
-                gs.players[nick]!!.numRangedWeapon = 2
+                net.doAction("numRangedWeapon", asList("2"))
+                gm.numRangedWeapon = 2
             }
             input.isKeyPressed(Input.KEY_5) -> {
-                net.doAction("meeleeWeapon", asList("0"))
-                gs.players[nick]!!.numMeeleeWeapon = 0
+                net.doAction("numMeeleeWeapon", asList("0"))
+                gm.numMeeleeWeapon = 0
             }
             input.isKeyPressed(Input.KEY_6) -> {
-                net.doAction("meeleeWeapon", asList("1"))
-                gs.players[nick]!!.numMeeleeWeapon = 1
+                net.doAction("numMeeleeWeapon", asList("1"))
+                gm.numMeeleeWeapon = 1
             }
             input.isKeyPressed(Input.KEY_7) -> {
-                net.doAction("meeleeWeapon", asList("2"))
-                gs.players[nick]!!.numMeeleeWeapon = 2
+                net.doAction("numMeeleeWeapon", asList("2"))
+                gm.numMeeleeWeapon = 2
             }
         }
-        val gm = gs.players[nick]!!
         gm.mouseVec = Vector2f(input.mouseX.toFloat() - ((gc.width) / 2),
                 input.mouseY.toFloat() - ((gc.height) / 2))
         net.doAction("direction", asList("${gm.mouseVec.x}", "${gm.mouseVec.y}"))
@@ -219,7 +233,10 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 if (distance(i.value.x + i.value.R, i.value.y + i.value.R, j.x + (j.r), j.y + (j.r))
                         <= i.value.R + (j.r)){
                     i.value.HP -= j.damage
-                    if (i.value.HP <= 0) j.owner.kills += if (j.owner.nick != i.value.nick) 1 else -1
+                    if (i.value.HP <= 0){
+                        j.owner.kills += if (j.owner.nick != i.value.nick) 1 else -1
+                        j.owner.killStreak += if (j.owner.nick != i.value.nick) 1 else 0
+                    }
                     toRemove.add(j)
                 }
                 if (j.y > map.height * map.tileHeight || j.y < 0) toRemove.add(j)
@@ -244,11 +261,25 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         }
         checkHit()
         val gmr = gs.players[nick]!!
+        when{
+            (gmr.killStreak in 2..3) && (gmr.arrayMeeleeWeapon.size == 1) -> {
+                gmr.arrayMeeleeWeapon.add(Rapier(gmr.x, gmr.y, gmr.R, gmr.mouseVec))
+                net.doAction("getMeelee", asList("rapier"))
+            }
+            (gmr.killStreak in 4..7) && (gmr.arrayRangedWeapon.size == 0) -> {
+                gmr.arrayRangedWeapon.add(Pistol(gmr.x, gmr.y, gmr.R, gmr.mouseVec))
+                net.doAction("getRanged", asList("pistol"))
+            }
+        }
         if (gmr.HP <= 0) {
             gmr.x = Random().nextInt(((map.height * map.tileHeight - gmr.R * 2).toInt())).toFloat()
             gmr.y = Random().nextInt(((map.width * map.tileWidth - gmr.R * 2).toInt())).toFloat()
             gmr.HP = gmr.maxHP
             ++gmr.deaths
+            gmr.killStreak = 0
+            gmr.arrayRangedWeapon = ArrayList<RangedWeapon>()
+            gmr.arrayMeeleeWeapon = ArrayList<Meelee>()
+            gmr.arrayMeeleeWeapon.add(Knife(gmr.x, gmr.y, gmr.R, gmr.mouseVec))
             net.doAction("ressurection", asList("${gmr.x}", "${gmr.y}"))
         }
 

@@ -25,6 +25,7 @@ class Player(var x: Float,
              var numMeeleeWeapon:Int = 0,
              var numRangedWeapon:Int = 0,
              var kills:Int = 0,
+             var killStreak:Int = 0,
              var deaths:Int = 0): Serializable {
 
     var arrayMeeleeWeapon = ArrayList<Meelee>()
