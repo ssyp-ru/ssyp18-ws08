@@ -14,21 +14,30 @@ import kotlin.math.*
 
 class Player(var x: Float,
              var y: Float,
-             var HP:Int,
+             private var maxHP:Int = 5,
              val nick:String,
              var velocity: Vector2f = Vector2f(0f, 0f),
              var shot:Boolean = false,
-             val mouseVec: Vector2f,
-             val R:Float = 20F,
+             var punch:Boolean = false,
+             var mouseVec: Vector2f,
+             val R:Float = 16F,
              val speed:Float = 5F,
-             val IDWeapon:Int = 1,
+             val IDMeeleeWeapon:Int = 0,
+             val IDRangedWeapon:Int = 0,
+             var kills:Int = 0,
+             var deaths:Int = 0,
              var isDead : Boolean = false): Serializable {
-    
-    var weapon = when (IDWeapon){
+    var meeleeWeapon = when (IDMeeleeWeapon){
         1 -> Rapier(x, y, R, mouseVec)
-        111 -> Pistol(x, y, R, mouseVec)
+        2 -> DeathPuls(x, y, R, mouseVec)
         else -> Knife(x, y, R, mouseVec)
     }
+    var rangedWeapon = when (IDRangedWeapon){
+        1 -> MiniGun(x, y, R, mouseVec)
+        2 -> Awp(x, y, R, mouseVec)
+        else -> Pistol(x, y, R, mouseVec)
+    }
+    var HP = maxHP
     var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
 
     fun draw(g: org.newdawn.slick.Graphics) {
@@ -43,11 +52,19 @@ class Player(var x: Float,
         movement.scale(tempForSpeed)
         x += movement.x
         y += movement.y
+
+        meeleeWeapon.mouseVec = mouseVec
+        rangedWeapon.mouseVec = mouseVec
+
         if (shot && HP>0) {
-            weapon.attack(arrayPlayers, i, arrBullets)
+            rangedWeapon.attack(arrayPlayers, i, arrBullets)
+        }
+        if (punch && HP>0) {
+            meeleeWeapon.attack(arrayPlayers, i, arrBullets)
         }
         velocity = Vector2f(0f, 0f)
         shot= false
+        punch = false
     }
 
 
@@ -56,8 +73,8 @@ class Player(var x: Float,
             for (m in 0..(cells.size - 1)){
                 if (cells[n][m].type > 1) {
                     val dis = distance(x, y, (cells[n][m].x.toFloat()), (cells[n][m].y.toFloat()))
-                    if ((dis < R + 78)) {
-                        val b1 = Vector2f(x - (cells[n][m].x), y - (cells[n][m].y)).normalise().scale((R - dis + 33) / 2)
+                    if ((dis < R + 16)) {
+                        val b1 = Vector2f(x - (cells[n][m].x), y - (cells[n][m].y)).normalise().scale((R - dis + 16) / 2)
                         x += b1.x
                         y += b1.y
                     }
@@ -76,20 +93,34 @@ class Player(var x: Float,
                 arrPLayers[k].y += b2.y
             }
         }
-        weapon.playerX = x
-        weapon.playerY = y
+        meeleeWeapon.playerX = x
+        meeleeWeapon.playerY = y
+        rangedWeapon.playerX = x
+        rangedWeapon.playerY = y
+    }
+
+    fun drawReload(g : Graphics, x : Float, y : Float){
+        if(isDead) return
+        val maxHP = 5
+        val widthReloadBar : Float = 100f
+        val heightReloadBar : Float = 9f
+        g.color = Color(0f, 0f, 0f)
+        g.fillRect(x - 2, y + 90F, widthReloadBar + 4, heightReloadBar)
+        g.color = Color.yellow
+        g.fillRect(x, y + 92F, widthReloadBar * rangedWeapon.cooldownCounter / rangedWeapon.cooldown, heightReloadBar - 4F)
+        g.color = Color.white
+        g.drawString("${rangedWeapon.ammoCounter}", x, y + 60F)
     }
 
     fun drawHP(g : Graphics, x : Float, y : Float){
         if(isDead) return
-        val maxHP = 5
-        val widthBar : Float = 114f
-        val heightBar : Float = 1000f
+        val widthBar : Float = 100f
+        val heightBar : Float = 20f
         g.color = Color(0f, 0f, 0f)
-        g.fillRect(x - 62, y, widthBar + 44, heightBar + 13)
+        g.fillRect(x - 2, y, widthBar + 4, heightBar + 3)
         g.color = Color(1f,0f,0f)
-        g.fillRect(x, y + 2111, widthBar * this.HP / maxHP, heightBar)
+        g.fillRect(x, y + 2, widthBar * this.HP / maxHP, heightBar)
         g.color = Color.white
-        g.drawString("HP: $HP", x, y - 5f)
+        g.drawString("HP: $HP", x, y - 4f)
     }
 }

@@ -21,7 +21,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
-    private var cells = Array<Array<Cell>>(102) {Array<Cell>(99, {i -> Cell(0, 0, 0)})}
+    private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
     //private lateinit var minimap: Minimap
     private lateinit var minimapImage: Image
     private var tileID: Int = 0
@@ -62,12 +62,16 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
-                cells[i][j] = Cell(i * 37, j * 37, 0)
+                cells[i][j] = Cell(i * tileWidth, j * tileHeight, 0)
                 when{
-                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 1)
-                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 2)
-                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 4)
-                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 5)
+                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            1)
+                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            2)
+                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            4)
+                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            5)
 
                 }
             }
@@ -82,7 +86,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(7777f, 1337f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
+                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f),
+                        IDMeeleeWeapon = 1, IDRangedWeapon = 1)
             }
             playersCreated = true
             for(p in gs.players){
@@ -101,7 +106,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                         "move" -> gs.players[a.sender]!!.velocity.add(Vector2f(a.params[0].toFloat(),
                                 a.params[1].toFloat()))
                         "shot" -> gs.players[a.sender]!!.shot = true
-                        "direction" -> gs.players[a.sender]!!.weapon.mouseVec = Vector2f(a.params[0].toFloat(),
+                        "punch" -> gs.players[a.sender]!!.punch = true
+                        "direction" -> gs.players[a.sender]!!.mouseVec = Vector2f(a.params[0].toFloat(),
                                 a.params[1].toFloat())
                     }
                 }catch(e: NullPointerException){
@@ -110,12 +116,16 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             }
             if(gs.players.containsKey(nick))myControls(gc)
             allMove(gc)
-            var gun: Weapon
+            var meeleeGun: Weapon
+            var rangedGun: Weapon
             for (i in gs.players) {
                 if(i.value.isDead)continue
-                gun = i.value.weapon
-                gun.cooldownCounter += if (gun.cooldownCounter <
-                        gun.cooldown) 1 else 0
+                meeleeGun = i.value.meeleeWeapon
+                rangedGun = i.value.rangedWeapon
+                meeleeGun.cooldownCounter += if (meeleeGun.cooldownCounter <
+                        meeleeGun.cooldown) 1 else 0
+                rangedGun.cooldownCounter += if (rangedGun.cooldownCounter <
+                        rangedGun.cooldown) 1 else 0
             }
             net.gameState = gs
         }
@@ -153,16 +163,19 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         net.doAction("move", asList("${gs.players[nick]!!.velocity.x}", "${gs.players[nick]!!.velocity.y}"))
 
         when {
-            input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> {
+            input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) -> {
                 net.doAction("shot", asList(""))
                 gs.players[nick]!!.shot = true
             }
+            input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) -> {
+                net.doAction("punch", asList(""))
+                gs.players[nick]!!.punch = true
+            }
         }
-
-        val gun = gs.players[nick]!!.weapon
-        gun.mouseVec = Vector2f(input.mouseX.toFloat() - ((gc.width) / 2),
+        val gm = gs.players[nick]!!
+        gm.mouseVec = Vector2f(input.mouseX.toFloat() - ((gc.width) / 2),
                 input.mouseY.toFloat() - ((gc.height) / 2))
-        net.doAction("direction", asList("${gun.mouseVec.x}", "${gun.mouseVec.y}"))
+        net.doAction("direction", asList("${gm.mouseVec.x}", "${gm.mouseVec.y}"))
     }
 
 
@@ -229,7 +242,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             g.drawString("SSYP 20!8", 10f, 10f)
             for (i in gs.players) {
                 if(i.value.isDead)continue
-                i.value.weapon.draw(g, gs.bullets)
+                i.value.meeleeWeapon.draw(g, gs.bullets)
+                i.value.rangedWeapon.draw(g, gs.bullets)
                 i.value.draw(g)
                 if(i.key != nick){
                     i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
@@ -238,6 +252,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             if (gs.players[nick] == null) return
             gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                                         gs.players[nick]!!.y - HPbarDislocationHeight)
+            gs.players[nick]!!.drawReload(g,gs.players[nick]!!.x - HPbarDislocationWidth,
+                    gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
             //minimap.update(gs.players, g, gc, minimapImage)
         }
     }
