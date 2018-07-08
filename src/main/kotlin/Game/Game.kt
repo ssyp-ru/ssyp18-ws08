@@ -7,8 +7,12 @@ import org.newdawn.slick.geom.Rectangle
 import java.awt.MouseInfo
 import java.util.*
 import org.newdawn.slick.geom.Vector2f
+import org.newdawn.slick.imageout.ImageIOWriter
 import org.newdawn.slick.tiled.TiledMap
 import java.awt.Font
+import java.io.FileOutputStream
+import java.io.FileWriter
+import java.io.OutputStream
 //import sun.nio.ch.Net
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
@@ -21,23 +25,21 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
-    private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
-    //private lateinit var minimap: Minimap
-    private lateinit var minimapImage: Image
-    private var tileID: Int = 0
-    private lateinit var value: String
+    var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, layer.GRASS)})}
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
     private var tileHeight: Int = 0
     private var tileWidth: Int = 0
     private lateinit var camera: Camera
+    private var minimapSize = 0
+    var isMinimapRendered = false
     var isHost = false
     val net: Network
     val gameName: String
     var nick: String
     private var playersCreated = false
     private var isGameOver = false
-    private var UI : UserInterface
+    private lateinit var UI : UserInterface
 
     init {
         print("Host?")
@@ -48,7 +50,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         nick = readLine()!!
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
         playersCreated = false
-        UI = UserInterface(nick)
+
     }
 
 
@@ -67,23 +69,22 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
-                cells[i][j] = Cell(i * tileWidth, j * tileHeight, 0)
+                cells[i][j] = Cell(i * tileWidth, j * tileHeight, layer.GRASS)
                 when{
                     (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
-                            1)
+                            layer.ROADS)
                     (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
-                            2)
+                            layer.CRATES)
                     (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
-                            4)
+                            layer.WATER)
                     (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
-                            5)
+                            layer.HOUSES)
 
                 }
             }
         }
-        //minimap = Minimap(cells, nick)
-        minimapImage = Image("res/map/Minimap.png")
         camera = Camera(map, mapWidth, mapHeight)
+        UI = UserInterface(gc, gs, nick, cells)
     }
 
     override fun update(gc: GameContainer, i: Int) {
@@ -297,10 +298,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                                         gs.players[nick]!!.y - HPbarDislocationHeight)
             gs.players[nick]!!.drawReload(g,gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
-
-            UI.drawUI(g, gs, -camera.x.toFloat(), -camera.y.toFloat())
-
-            //minimap.update(gs.players, g, gc, minimapImage)
+            UI.drawUI(g, -camera.x.toFloat(), -camera.y.toFloat())
         }
     }
 }

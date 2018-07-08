@@ -17,15 +17,16 @@ class Player(var x: Float,
              var maxHP:Int = 5,
              val nick:String,
              var velocity: Vector2f = Vector2f(0f, 0f),
-             var shot:Boolean = false,
-             var punch:Boolean = false,
+             var shot: Boolean = false,
+             var punch: Boolean = false,
              var mouseVec: Vector2f,
              val R:Float = 16F,
              val speed:Float = 5F,
              var numMeeleeWeapon:Int = 0,
              var numRangedWeapon:Int = 0,
              var kills:Int = 0,
-             var deaths:Int = 0): Serializable {
+             var deaths:Int = 0,
+             val mapR: Int = 16): Serializable {
 
     var arrayMeeleeWeapon = ArrayList<Meelee>()
     var arrayRangedWeapon = ArrayList<RangedWeapon>()
@@ -45,8 +46,9 @@ class Player(var x: Float,
 
     fun draw(g: org.newdawn.slick.Graphics) {
         g.color = colorPlayer
-        g.fillOval(x, y, 2*R, 2*R)
+        g.fillOval(x, y, 2 * R, 2 * R)
     }
+
 
     fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player, arrBullets:ArrayList<Bullets>){
         val tempForSpeed = speed
@@ -63,7 +65,6 @@ class Player(var x: Float,
         if (arrayRangedWeapon.size - 1 >= numRangedWeapon) {
                 arrayRangedWeapon[numRangedWeapon].mouseVec = mouseVec
         }
-
         if (shot && arrayRangedWeapon.size -1 >= numRangedWeapon) {
             arrayRangedWeapon[numRangedWeapon].attack(arrayPlayers, i, arrBullets)
         }
@@ -71,19 +72,20 @@ class Player(var x: Float,
             arrayMeeleeWeapon[numMeeleeWeapon].attack(arrayPlayers, i, arrBullets)
         }
         velocity = Vector2f(0f, 0f)
-        shot= false
+        shot = false
         punch = false
     }
 
 
-    fun hit(arrPLayers:ArrayList<Player>, i:Int, cells:Array<Array<Cell>>) {
-        for (n in 0..(cells.size - 1)){
-            for (m in 0..(cells.size - 1)){
-                if (cells[n][m].type > 1) {
+    fun hit(arrPLayers: ArrayList<Player>, i: Int, cells: Array<Array<Cell>>) {
+        for (n in 0..(cells.size - 1)) {
+            for (m in 0..(cells.size - 1)) {
+                if ((cells[n][m].type == layer.CRATES) || (cells[n][m].type == layer.WATER) ||
+                        (cells[n][m].type == layer.HOUSES)) {
                     val dis = distance(x, y, (cells[n][m].x.toFloat()), (cells[n][m].y.toFloat()))
-                    if ((dis < R + 16)) {
-                        val b1 = Vector2f(x - (cells[n][m].x), y -
-                                (cells[n][m].y)).normalise().scale((R - dis + 16) / 2)
+                    if ((dis < R + mapR)) {
+                        val b1 = Vector2f(x - (cells[n][m].x), y - (cells[n][m].y)).normalise().scale(
+                                (R - dis + mapR) / 2)
                         x += b1.x
                         y += b1.y
                     }
