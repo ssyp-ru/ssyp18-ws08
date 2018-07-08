@@ -237,13 +237,14 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         val arrAllBullets = ArrayList<Bullets>()
         for (i in gs.players) {
             i.value.controlPlayer(gc, gs.players, i.value, gs.bullets)
-            for (k in gs.bullets){
+            for (k in gs.bullets) {
                 arrAllBullets.add(k)
                 k.x += k.direct.x
                 k.y += k.direct.y
             }
         }
         checkHit()
+        if (gs.players[nick] != null) return
         val gmr = gs.players[nick]!!
         if (gmr.HP <= 0) {
             gmr.x = Random().nextInt(((map.height * map.tileHeight - gmr.R * 2).toInt())).toFloat()
@@ -252,6 +253,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             ++gmr.deaths
             net.doAction("ressurection", asList("${gmr.x}", "${gmr.y}"))
         }
+
 
         //костыли
         val tmp = ArrayList<Player>()
