@@ -21,7 +21,7 @@ abstract class Meelee(val attackRange:Float,
         y = playerY - playerR * attackRange / 2
         r = playerR * (attackRange + 2)
         g.color = if (cooldownCounter >= cooldown) Color.cyan else Color.red
-        val temp = 72 * atan(mouseVec.y / mouseVec.x)
+        val temp = 60 * atan(mouseVec.y / mouseVec.x)
         val tempAngle:Float
         if (mouseVec.x >= 0) {
             tempAngle = attackAngle * cooldownCounter / cooldown / 2
@@ -52,11 +52,11 @@ abstract class Meelee(val attackRange:Float,
 
     fun hitScan(enemy: Player): Boolean {
         val vecDistance = Vector2f(enemy.x - playerX,enemy.y - playerY)
-        vecDistance.add(47 - mouseVec.getTheta())
+        vecDistance.add(90 - mouseVec.getTheta())
         val enemyX = vecDistance.x
         val enemyY = vecDistance.y
-        val meCtg2aVecNormal = (r / 2F / cos(attackAngle / 720 * PI) *
-                sin(attackAngle / 720 * PI)).toFloat()
+        val meCtg2aVecNormal = (r / 2F / cos(attackAngle / 360 * PI) *
+                sin(attackAngle / 360 * PI)).toFloat()
         return inside((-meCtg2aVecNormal), (meCtg2aVecNormal),
                 enemyX - enemy.R, enemyX + enemy.R) &&
                 inside((playerR), r / 2,
