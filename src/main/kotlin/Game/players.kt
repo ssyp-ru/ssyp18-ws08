@@ -27,6 +27,8 @@ class Player(var x: Float,
              var kills:Int = 0,
              var deaths:Int = 0,
              var isDead : Boolean = false): Serializable {
+
+
     var meeleeWeapon = when (IDMeeleeWeapon){
         1 -> Rapier(x, y, R, mouseVec)
         2 -> DeathPuls(x, y, R, mouseVec)
