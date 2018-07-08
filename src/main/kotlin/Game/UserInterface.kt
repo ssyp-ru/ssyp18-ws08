@@ -25,7 +25,6 @@ class UserInterface(val gc : GameContainer, val gs : GameState, val nick : Strin
             minimapImage.draw((x), y, minimapSize, minimapSize)
 
             for (i in gs.players){
-                g.color = i.value.colorPlayer
                 g.drawOval((i.value.x / tileSize * (minimapSize / mapSize) + x),
                         (i.value.y / tileSize * (minimapSize / mapSize) + y),
                         (minimapSize / mapSize) * 2,  (minimapSize / mapSize) * 2)

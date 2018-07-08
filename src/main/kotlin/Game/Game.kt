@@ -157,17 +157,6 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         }
     }
 
-//    private fun deathCheck() {
-//        //val toKill = ArrayList<String>()
-//        for(p in gs.players){
-//            if(p.value.HP <= 0) {
-//                p.value.isDead = true
-//                //if(p.value.nick == nick)isGameOver = true
-//                //toKill.add(p.key)
-//            }
-//        }
-//        //for(p in toKill)gs.players.remove(p)
-//    }
 
     private fun myControls(gc: GameContainer) {
         val gm = gs.players[nick]!!
@@ -251,17 +240,15 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     private fun allMove(gc: GameContainer) {
-        val arrAllBullets = ArrayList<Bullets>()
         for (i in gs.players) {
             i.value.controlPlayer(gc, gs.players, i.value, gs.bullets)
-            for (k in gs.bullets) {
-                arrAllBullets.add(k)
-                k.x += k.direct.x
-                k.y += k.direct.y
-            }
+        }
+        for (k in gs.bullets) {
+            k.x += k.direct.x
+            k.y += k.direct.y
         }
         checkHit()
-        if (gs.players[nick] != null) return
+        if (gs.players[nick] == null) return
         val gmr = gs.players[nick]!!
         when{
             (gmr.killStreak in 2..3) && (gmr.arrayMeeleeWeapon.size == 1) -> {
@@ -284,7 +271,6 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             gmr.arrayMeeleeWeapon.add(Knife(gmr.x, gmr.y, gmr.R, gmr.mouseVec))
             net.doAction("ressurection", asList("${gmr.x}", "${gmr.y}"))
         }
-
 
         //костыли
         val tmp = ArrayList<Player>()

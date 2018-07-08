@@ -33,21 +33,23 @@ class Player(var x: Float,
 
     init{
         arrayMeeleeWeapon.add(Knife(x, y, R, mouseVec))
-//        arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec))
-//        arrayMeeleeWeapon.add(DeathPuls(x, y, R, mouseVec))
-//        arrayRangedWeapon.add(Pistol(x, y, R, mouseVec))
-//        arrayRangedWeapon.add(MiniGun(x, y, R, mouseVec))
-//        arrayRangedWeapon.add(Awp(x, y, R, mouseVec))
+        arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec))
+        arrayMeeleeWeapon.add(DeathPuls(x, y, R, mouseVec))
+        arrayRangedWeapon.add(Pistol(x, y, R, mouseVec))
+        arrayRangedWeapon.add(MiniGun(x, y, R, mouseVec))
+        arrayRangedWeapon.add(Awp(x, y, R, mouseVec))
     }
 
     fun draw(g: org.newdawn.slick.Graphics) {
-        var arrayOfImages = PlayerAnimations(0, mouseVec).ArrayImagesReturn
+        var arrayOfImages = PlayerAnimations(numRangedWeapon, mouseVec).arrayImagesReturn
+        var animations = PlayerAnimations(numRangedWeapon, mouseVec).animationReturn
         if (mouseVec.x >= 0) {
             arrayOfImages[0].setRotation(toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x) - toDegree(PI) / 2)
         } else {
             arrayOfImages[0].setRotation(toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x) - toDegree(PI)* 3 / 2)
         }
         arrayOfImages[0].draw(x, y)
+        if(shot) animations.draw()
         /*if (numRangedWeapon == 0) {
             for(i in 0..5) {
                 pistolAnimationImages[i].setRotation(atan(mouseVec.x/mouseVec.y))

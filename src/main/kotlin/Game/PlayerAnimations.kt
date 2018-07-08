@@ -18,13 +18,15 @@ data class PlayerAnimations (var ID: Int, var mouseVec: Vector2f){
     init {
         listOfImagesArrays.add(pistolAnimationImages)
         listOfImagesArrays.add(minigunAnimationImages)
-        listOfAnimations.add(minigunAnimation)
         listOfAnimations.add(pistolAnimation)
+        listOfAnimations.add(minigunAnimation)
+
     }
 
     val animationReturn: Animation
         get() {
-            for (i in 0..(ArrayImagesReturn[ID].size-1)){
+            //val listToReturn: ArrayList<Animation>
+            for (i in 0..(this.arrayImagesReturn.size-1)){
                 if (mouseVec.x >= 0) {
                     listOfAnimations[ID].getImage(i).setRotation(toDegree(PI) / 3 *
                             atan(mouseVec.y / mouseVec.x) - toDegree(PI) / 2)
@@ -33,9 +35,9 @@ data class PlayerAnimations (var ID: Int, var mouseVec: Vector2f){
                             atan(mouseVec.y / mouseVec.x) - toDegree(PI)* 3 / 2)
                 }
             }
-            return
+            return listOfAnimations[ID]
     }
-    val ArrayImagesReturn: Array<Image>
+    val arrayImagesReturn: Array<Image>
             get() {
         return listOfImagesArrays[ID]
     }

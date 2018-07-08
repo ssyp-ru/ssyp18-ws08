@@ -53,7 +53,7 @@ abstract class RangedWeapon(val rapidiy:Float,
 
 class Pistol(override var playerX:Float, override var playerY:Float, override val playerR:Float,
              override var mouseVec:Vector2f):RangedWeapon(20F, 3, 300F, 101, 0.3F,
-        7, 15, 3F){}
+        7, 5, 3F){}
 
 class MiniGun(override var playerX:Float, override var playerY:Float, override val playerR:Float,
               override var mouseVec:Vector2f):RangedWeapon(3F, 1, 600F, 102, 0.2F,
