@@ -20,16 +20,19 @@ class UserInterface(val gc : GameContainer, val gs : GameState, val nick : Strin
         val minimapSize = gc.height / 4f
         val mapSize = 100
 
-        fun draw(x: Float, y: Float) {
+        fun draw(x: Float, y: Float, gs: GameState) {
             val minimapScale = 2f
             minimapImage.draw((x), y, minimapSize, minimapSize)
 
-//            for (i in players){
-//                g.color = Color.red
-//                g.fillRect((i.value.x / tileSize + players[nick]!!.x - (gc.width / 2) + R) * minimapSize / mapSize,
-//                        (i.value.y / tileSize + players[nick]!!.y - (gc.height / 2) + R) * minimapSize / mapSize,
-//                        minimapSize / mapSize,  minimapSize / mapSize)
-//            }
+            for (i in gs.players){
+                g.color = i.value.colorPlayer
+                g.drawOval((i.value.x / tileSize * (minimapSize / mapSize) + x),
+                        (i.value.y / tileSize * (minimapSize / mapSize) + y),
+                        (minimapSize / mapSize) * 2,  (minimapSize / mapSize) * 2)
+                g.fillRect((i.value.x / tileSize * (minimapSize / mapSize) + x),
+                        (i.value.y / tileSize * (minimapSize / mapSize) + y),
+                        (minimapSize / mapSize) * 2,  (minimapSize / mapSize) * 2)
+            }
         }
     }
 
@@ -68,7 +71,7 @@ class UserInterface(val gc : GameContainer, val gs : GameState, val nick : Strin
         }
         val minimap = Minimap(g, gc, cells, minimapImage)
         if(!isMinimapCreated)this.isMinimapCreated = true
-        minimap.draw(x + gc.width - minimap.minimapSize, y) //
+        minimap.draw(x + gc.width - minimap.minimapSize, y, gs) //
         val tableSHift = 5
         drawScore(g,x + tableSHift, y)
     }
