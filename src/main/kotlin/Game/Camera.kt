@@ -8,8 +8,8 @@ import java.awt.MouseInfo
 
 
 class Camera(map: TiledMap, private val mapWidth: Int, private val mapHeight: Int) {
-    private var x: Int = 0
-    private var y: Int = 0
+    var x: Int = 0
+    var y: Int = 0
     private var viewPort: Rectangle
 
     init {

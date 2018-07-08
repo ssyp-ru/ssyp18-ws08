@@ -37,6 +37,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     var nick: String
     private var playersCreated = false
     private var isGameOver = false
+    private var UI : UserInterface
 
     init {
         print("Host?")
@@ -47,7 +48,10 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         nick = readLine()!!
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
         playersCreated = false
+        UI = UserInterface(nick)
     }
+
+
     override fun init(gc: GameContainer) {
         gc.setVSync(true)
         gc.alwaysRender = true
@@ -244,6 +248,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             gmr.x = Random().nextInt(((map.height * map.tileHeight - gmr.R * 2).toInt())).toFloat()
             gmr.y = Random().nextInt(((map.width * map.tileWidth - gmr.R * 2).toInt())).toFloat()
             gmr.HP = gmr.maxHP
+            ++gmr.deaths
             net.doAction("ressurection", asList("${gmr.x}", "${gmr.y}"))
         }
 
@@ -256,6 +261,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         for(p in tmp)gs.players[p.nick] = p
         //конец косытлей
     }
+
+
 
     override fun render(gc: GameContainer, g: Graphics) {
         val HPbarDislocationHeight = 52.5f
@@ -285,11 +292,15 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                     i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
                 }
             }
+            val cameraShift = 5
             if (gs.players[nick] == null) return
             gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                                         gs.players[nick]!!.y - HPbarDislocationHeight)
             gs.players[nick]!!.drawReload(g,gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
+
+            UI.drawScore(g, gs, -camera.x.toFloat() + cameraShift, -camera.y.toFloat())
+
             //minimap.update(gs.players, g, gc, minimapImage)
         }
     }
