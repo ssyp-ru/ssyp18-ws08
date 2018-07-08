@@ -12,6 +12,7 @@ import java.io.*
 import java.util.*
 import java.util.Arrays.asList
 import java.util.concurrent.locks.ReentrantLock
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane
 
 class NetSync(gs: Serializable,
               private var isHost: Boolean,
@@ -49,6 +50,7 @@ class NetSync(gs: Serializable,
         prodProperties.setProperty("value.serializer", ByteArraySerializer::class.java.name)
         prodProperties.setProperty("retries", "5")
         prodProperties.setProperty("acks", "1")
+        //prodProperties.setProperty("buffer.memory", "1000")
         prod = KafkaProducer(prodProperties)
 
         cons.assign(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
@@ -74,15 +76,17 @@ class NetSync(gs: Serializable,
     }*/
 
     override fun run() {
+
         while (true) {
             if (isHost) {
                 gsarrLock.lock()
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
                 gsarrLock.unlock()
                 //println("send sync")
-                Thread.sleep(2950)
+                Thread.sleep(1000)
             } else {
                 val records = cons.poll(50)
+
                 for (r in records) {
 
                     if (r.key() == "sync") {

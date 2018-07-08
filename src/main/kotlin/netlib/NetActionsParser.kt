@@ -20,6 +20,7 @@ class NetActionsParser(ip: String,
     }
 
     override fun run() {
+        var prevTime: Long = 0
         val listPartitions = ArrayList<TopicPartition>()
         println("(Network)Parser initialized!")
         for (p in players) {
@@ -30,8 +31,10 @@ class NetActionsParser(ip: String,
         cons.assign(listPartitions)
         cons.seekToEnd(listPartitions)
         while (true) {
-            val records = cons.poll(10)
+            val records = cons.poll(5)
             if (records.isEmpty) continue
+            //println(System.currentTimeMillis() - prevTime)
+            //prevTime = System.currentTimeMillis()
             actionsLock.lock()
             for (r in records) {
                 actions.add(NetAction(r.topic().drop(8), r.key(), r.value().split('|')))

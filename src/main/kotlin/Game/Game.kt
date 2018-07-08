@@ -7,11 +7,16 @@ import org.newdawn.slick.geom.Rectangle
 import java.awt.MouseInfo
 import java.util.*
 import org.newdawn.slick.geom.Vector2f
+import org.newdawn.slick.imageout.ImageIOWriter
 import org.newdawn.slick.tiled.TiledMap
 import java.awt.Font
+import java.io.FileOutputStream
+import java.io.FileWriter
+import java.io.OutputStream
 //import sun.nio.ch.Net
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
+import kotlin.math.pow
 
 class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
@@ -20,16 +25,15 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
-    private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
-    //private lateinit var minimap: Minimap
-    private lateinit var minimapImage: Image
-    private var tileID: Int = 0
-    private lateinit var value: String
+    private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, layer.GRASS)})}
+    private lateinit var minimap: Minimap
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
     private var tileHeight: Int = 0
     private var tileWidth: Int = 0
     private lateinit var camera: Camera
+    private var minimapSize = 0
+    var isMinimapRendered = false
     var isHost = false
     val net: Network
     val gameName: String
@@ -61,18 +65,21 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
-                cells[i][j] = Cell(i * 32, j * 32, 0)
+                cells[i][j] = Cell(i * tileWidth, j * tileHeight, layer.GRASS)
                 when{
-                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 1)
-                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 2)
-                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 4)
-                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 5)
+                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            layer.ROADS)
+                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            layer.CRATES)
+                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            layer.WATER)
+                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
+                            layer.HOUSES)
 
                 }
             }
         }
-        //minimap = Minimap(cells, nick)
-        minimapImage = Image("res/map/Minimap.png")
+        minimap = Minimap(cells, nick, gc)
         camera = Camera(map, mapWidth, mapHeight)
     }
 
@@ -81,7 +88,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f))
+                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f),
+                        IDMeeleeWeapon = 1, IDRangedWeapon = 1)
             }
             playersCreated = true
             for(p in gs.players){
@@ -97,17 +105,11 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 try {
                     when (a.name) {
                     /**/
-                        "move" -> {
-                            when (a.params[0]) {
-                                "right" -> gs.players[a.sender]!!.goRight = true
-                                "left" -> gs.players[a.sender]!!.goLeft = true
-                                "up" -> gs.players[a.sender]!!.goUp = true
-                                "down" -> gs.players[a.sender]!!.goDown = true
-                            }
-                            allMove(gc)
-                        }
+                        "move" -> gs.players[a.sender]!!.velocity.add(Vector2f(a.params[0].toFloat(),
+                                a.params[1].toFloat()))
                         "shot" -> gs.players[a.sender]!!.shot = true
-                        "direction" -> gs.players[a.sender]!!.weapon.mouseVec = Vector2f(a.params[0].toFloat(),
+                        "punch" -> gs.players[a.sender]!!.punch = true
+                        "direction" -> gs.players[a.sender]!!.mouseVec = Vector2f(a.params[0].toFloat(),
                                 a.params[1].toFloat())
                     }
                 }catch(e: NullPointerException){
@@ -116,64 +118,100 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             }
             if(gs.players.containsKey(nick))myControls(gc)
             allMove(gc)
-            var gun: Meelee
+            var meeleeGun: Weapon
+            var rangedGun: Weapon
             for (i in gs.players) {
-                gun = i.value.weapon
-                gun.cooldownCounter += if (gun.cooldownCounter <
-                        gun.cooldown) 1 else 0
+                if(i.value.isDead)continue
+                meeleeGun = i.value.meeleeWeapon
+                rangedGun = i.value.rangedWeapon
+                meeleeGun.cooldownCounter += if (meeleeGun.cooldownCounter <
+                        meeleeGun.cooldown) 1 else 0
+                rangedGun.cooldownCounter += if (rangedGun.cooldownCounter <
+                        rangedGun.cooldown) 1 else 0
             }
-            
             net.gameState = gs
         }
     }
 
     private fun deathCheck() {
-        val toKill = ArrayList<String>()
+        //val toKill = ArrayList<String>()
         for(p in gs.players){
             if(p.value.HP <= 0) {
-                if(p.value.nick == nick)isGameOver = true
-                toKill.add(p.key)
+                p.value.isDead = true
+                //if(p.value.nick == nick)isGameOver = true
+                //toKill.add(p.key)
             }
         }
-        for(p in toKill)gs.players.remove(p)
+        //for(p in toKill)gs.players.remove(p)
     }
 
     private fun myControls(gc: GameContainer) {
         //println(playersCreated)
+        if(gs.players[nick]!!.isDead)return
         val input = gc.input
         if (input.isKeyDown(Input.KEY_D)) {
-            gs.players[nick]!!.goRight = true
-            net.doAction("move", asList("right"))
+            gs.players[nick]!!.velocity.x += 1f
         }
         if (input.isKeyDown(Input.KEY_A)) {
-            gs.players[nick]!!.goLeft = true
-            net.doAction("move", asList("left"))
+            gs.players[nick]!!.velocity.x -= 1f
         }
         if (input.isKeyDown(Input.KEY_W)) {
-            net.doAction("move", asList("up"))
-            gs.players[nick]!!.goUp = true
+            gs.players[nick]!!.velocity.y -= 1f
         }
         if (input.isKeyDown(Input.KEY_S)) {
-            net.doAction("move", asList("down"))
-            gs.players[nick]!!.goDown = true
+            gs.players[nick]!!.velocity.y += 1f
         }
+        gs.players[nick]!!.velocity = gs.players[nick]!!.velocity.normalise()
+        net.doAction("move", asList("${gs.players[nick]!!.velocity.x}", "${gs.players[nick]!!.velocity.y}"))
 
         when {
-            input.isMousePressed(Input.MOUSE_LEFT_BUTTON) -> {
+            input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) -> {
                 net.doAction("shot", asList(""))
                 gs.players[nick]!!.shot = true
             }
+            input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) -> {
+                net.doAction("punch", asList(""))
+                gs.players[nick]!!.punch = true
+            }
+        }
+        val gm = gs.players[nick]!!
+        gm.mouseVec = Vector2f(input.mouseX.toFloat() - ((gc.width) / 2),
+                input.mouseY.toFloat() - ((gc.height) / 2))
+        net.doAction("direction", asList("${gm.mouseVec.x}", "${gm.mouseVec.y}"))
+    }
+
+
+    private fun checkHit(){
+        val toRemove = ArrayList<Bullets>()
+        for(i in gs.players) {
+            for (j in gs.bullets) {
+                if (distance(i.value.x + i.value.R, i.value.y + i.value.R, j.x + (j.r), j.y + (j.r))
+                        <= i.value.R + (j.r)){
+                    i.value.HP -= j.damage
+                    toRemove.add(j)
+                }
+                if (j.y > map.height * map.tileHeight || j.y < 0) toRemove.add(j)
+                if (j.x > map.width * map.tileWidth || j.x < 0) toRemove.add(j)
+            }
+        }
+        for(b in toRemove){
+            gs.bullets.remove(b)
         }
 
-        val gun = gs.players[nick]!!.weapon
-        gun.mouseVec = Vector2f(input.mouseX.toFloat() - ((gc.width) / 2),
-                input.mouseY.toFloat() - ((gc.height) / 2))
-        net.doAction("direction", asList("${gun.mouseVec.x}", "${gun.mouseVec.y}"))
     }
 
     private fun allMove(gc: GameContainer) {
-        for (i in gs.players)
-            i.value.controlPlayer(gc, gs.players, i.value)
+        val arrAllBullets = ArrayList<Bullets>()
+        for (i in gs.players) {
+            i.value.controlPlayer(gc, gs.players, i.value, gs.bullets)
+            if (i.value.isDead) continue
+            for (k in gs.bullets){
+                arrAllBullets.add(k)
+                k.x += k.direct.x
+                k.y += k.direct.y
+            }
+        }
+        checkHit()
 
         deathCheck()
 
@@ -181,6 +219,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         val tmp = ArrayList<Player>()
         for(p in gs.players)tmp.add(p.value)
         for (i in 0..(tmp.size - 1)) {
+            if(tmp[i].isDead)continue
             tmp[i].hit(tmp, i, cells)
         }
         for(p in tmp)gs.players[p.nick] = p
@@ -188,10 +227,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     override fun render(gc: GameContainer, g: Graphics) {
+        val HPbarDislocationHeight = 52.5f
+        val HPbarDislocationWidth =  27.5f
         if (!net.getGameStarted()) {
-            var y = 10f
+            var y = 0f
             for (p in net.getPlayers()) {
-                g.drawString(p.nick, 10f, y)
+                g.drawString(p.nick, 2.88f, y)
                 y += 20
             }
         } else if(playersCreated){
@@ -202,10 +243,20 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             g.color = color
             g.drawString("SSYP 20!8", 10f, 10f)
             for (i in gs.players) {
-                i.value.weapon.draw(g)
+                if(i.value.isDead)continue
+                i.value.meeleeWeapon.draw(g, gs.bullets)
+                i.value.rangedWeapon.draw(g, gs.bullets)
                 i.value.draw(g)
+                if(i.key != nick){
+                    i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
+                }
             }
-            //minimap.update(gs.players, g, gc, minimapImage)
+            if (gs.players[nick] == null) return
+            gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - HPbarDislocationWidth,
+                                        gs.players[nick]!!.y - HPbarDislocationHeight)
+            gs.players[nick]!!.drawReload(g,gs.players[nick]!!.x - HPbarDislocationWidth,
+                    gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
+            minimap.draw(gs.players, g)
         }
     }
 }

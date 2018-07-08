@@ -8,29 +8,40 @@ import org.newdawn.slick.util.BufferedImageUtil
 import java.util.*
 
 
-/*class Minimap(val cells: Array<Array<Cell>>, val nick: String){
-    fun update (players: HashMap<String, Player>, g: Graphics, gc: GameContainer, minimapImage: Image){
-        g.color = Color.white
-        for (i in 0..(cells.size - 1)){
-            for (j in 0..(cells[i].size - 1)){
-                when{
-                    (cells[i][j].type == 1) -> g.color = Color.gray
-                    (cells[i][j].type == 2) -> g.color = Color.red
-                    (cells[i][j].type == 0) -> g.color = Color.green
-                    (cells[i][j].type == 4) -> g.color = Color.blue
-                    (cells[i][j].type == 5) -> g.color = Color.yellow
+class Minimap(val cells: Array<Array<Cell>>, val nick: String, var gc: GameContainer){
+    val R = 16
+    val tileSize = 32
+    val minimapSize = gc.height / 4f
+    val mapSize = 100
+    var isMinimapCreated = false
+    var minimapImage = Image(mapSize, mapSize)
+
+    fun draw(players: HashMap<String, Player>, g: Graphics){
+        if (!isMinimapCreated){
+            for (i in 0..(cells.size - 1)){
+                for (j in 0..(cells[i].size - 1)){
+                    when{
+                        (cells[i][j].type == layer.ROADS) -> g.color = Color.gray
+                        (cells[i][j].type == layer.CRATES) -> g.color = Color.red
+                        (cells[i][j].type == layer.GRASS) -> g.color = Color.green
+                        (cells[i][j].type == layer.WATER) -> g.color = Color.blue
+                        (cells[i][j].type == layer.HOUSES) -> g.color = Color.yellow
+                    }
+                    g.drawRect((cells[i][j].x / tileSize + players[nick]!!.x - (gc.width / 2) + R),
+                            (cells[i][j].y / tileSize + players[nick]!!.y - (gc.height / 2) + R), 1f, 1f)
                 }
-                g.drawRect((cells[i][j].x / 32 + players[nick]!!.x - (gc.width / 2) + 20),
-                        (cells[i][j].y / 32 + players[nick]!!.y - (gc.height / 2) + 20), 4f, 4f)
             }
-        }*/
-        minimapImage.draw((players[nick]!!.x - (gc.width / 2) + 20), (players[nick]!!.y - (gc.height / 2) + 20),
-                gc.height / 3f, gc.height / 3f)
+            isMinimapCreated = true
+            g.copyArea(minimapImage, 0, 0)
+        }else{
+            minimapImage.draw((players[nick]!!.x + (gc.width / 2) + R - minimapSize),
+                    (players[nick]!!.y - (gc.height / 2) + R), minimapSize, minimapSize)
+        }
         for (i in players){
             g.color = Color.red
-            g.fillRect((i.value.x / 32 + players[nick]!!.x - (gc.width / 2) + 20) * gc.height / 300f,
-                    (i.value.y / 32 + players[nick]!!.y - (gc.height / 2) + 20) * gc.height / 300f,
-                    gc.height / 300f, gc.height / 300f)
+            g.fillRect((i.value.x / tileSize + players[nick]!!.x - (gc.width / 2) + R) * minimapSize / mapSize,
+                    (i.value.y / tileSize + players[nick]!!.y - (gc.height / 2) + R) * minimapSize / mapSize,
+                    minimapSize / mapSize,  minimapSize / mapSize)
         }
     }
-}*/
+}
