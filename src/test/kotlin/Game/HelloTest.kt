@@ -1,5 +1,0 @@
-package Game
-
-class HelloTest {
-
-}
