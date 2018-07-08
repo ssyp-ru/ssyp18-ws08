@@ -25,14 +25,14 @@ class NetOnline(private val nick: String,
     }
     override fun run() {
         var records: ConsumerRecords<String, String>
-        var prevDate = Date()
+        var prevDate: Long = System.currentTimeMillis()
         var millis: Long
         pi = Array(players.size, { _ -> "" })
         for (p in players) {
             pi[p.value.position] = p.value.nick
             println(p.value.position)
         }
-        for (i in 0..(pi.size - 1)) println(players[pi[i]])
+        //for (i in 0..(pi.size - 1)) println(players[pi[i]])
 
         while (true) {
             records = cons.poll(30)
@@ -40,7 +40,7 @@ class NetOnline(private val nick: String,
                 when (r.key()) {
                     "alive" -> {
                         //println("${r.value()} is alive! ${players[r.value()]}")
-                        players[r.value()]!!.onlineTimer = 1000
+                        players[r.value()]!!.onlineTimer = 2000
                     }
                     "newHost" -> {
                         sync.setHost(r.value() == nick)
@@ -48,8 +48,8 @@ class NetOnline(private val nick: String,
                     }
                 }
             }
-            millis = Date().time - prevDate.time
-            prevDate = Date()
+            millis = System.currentTimeMillis() - prevDate
+            prevDate = System.currentTimeMillis()
 
             for (p in players) {
                 p.value.onlineTimer -= millis
@@ -59,7 +59,7 @@ class NetOnline(private val nick: String,
             if (!players[pi[host]]!!.isOnline) {
                 newHost()
             }
-            if(players[nick]!!.onlineTimer < 850) {
+            if(players[nick]!!.onlineTimer < 1500) {
                 prod.send(ProducerRecord(gameTopic, PartitionID.ONLINE.ordinal, "alive", nick))
             }
         }

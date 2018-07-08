@@ -23,7 +23,7 @@ class Network(private val ip: String,
     private val players = ArrayList<NetPlayer>()
     private var gameStarted = false
     private val syncer: NetSync
-    private var onliner: NetOnline? = null
+    //private var onliner: NetOnline? = null
     private var playersLock = ReentrantLock()
     private val actionsLock = ReentrantLock()
 
@@ -70,10 +70,11 @@ class Network(private val ip: String,
         while (!gameStarted) {
             print("")
         }
+        syncer.setPlayers(players)
         actionsParser.start()
         syncer.start()
-        onliner = NetOnline(nick, ip, lobbyTopicName, getPlayersAsHashMap(), syncer)
-        onliner!!.setDaemon(true)
+        //onliner = NetOnline(nick, ip, lobbyTopicName, getPlayersAsHashMap(), syncer)
+        //onliner!!.setDaemon(true)
         //onliner!!.start()
     }
 

@@ -42,7 +42,7 @@ class NetLobby(private val gameName: String,
             cons.seek(part, offset)
             records = cons.poll(10)
             if (records.isEmpty) continue
-            println("$offset")
+            //println("$offset")
             offset--
         }
         cons.seek(part, ++offset)
