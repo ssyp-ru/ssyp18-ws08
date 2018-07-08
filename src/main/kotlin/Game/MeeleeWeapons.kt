@@ -27,7 +27,7 @@ abstract class Meelee(val attackRange:Float,
             tempAngle = attackAngle * cooldownCounter / cooldown / 2
             g.fillArc(x, y, r, r, -tempAngle + temp, tempAngle + temp)
         } else {
-            tempAngle = 180 - attackAngle * cooldownCounter / cooldown / 2
+            tempAngle = toDegree(PI) - attackAngle * cooldownCounter / cooldown / 2
             g.fillArc(x, y, r, r,tempAngle + temp,-tempAngle + temp)
         }
     }
@@ -45,18 +45,21 @@ abstract class Meelee(val attackRange:Float,
         if (cooldownCounter == cooldown){
             cooldownCounter = 0F
             for (player in arrPlayers){
-                if (hitScan(player.value) && player.value != k) player.value.HP -= damage
+                if (hitScan(player.value) && player.value != k) {
+                    player.value.HP -= damage
+                    if (player.value.HP <= 0) ++k.kills
+                }
             }
         }
     }
 
     fun hitScan(enemy: Player): Boolean {
         val vecDistance = Vector2f(enemy.x - playerX,enemy.y - playerY)
-        vecDistance.add(90 - mouseVec.getTheta())
+        vecDistance.add(toDegree(PI) / 2 - mouseVec.getTheta())
         val enemyX = vecDistance.x
         val enemyY = vecDistance.y
-        val meCtg2aVecNormal = (r / 2F / cos(attackAngle / 360 * PI) *
-                sin(attackAngle / 360 * PI)).toFloat()
+        val meCtg2aVecNormal = (r / 2F / cos(attackAngle / toDegree(PI)* 2 * PI) *
+                sin(attackAngle / toDegree(PI)* 2 * PI)).toFloat()
         return inside((-meCtg2aVecNormal), (meCtg2aVecNormal),
                 enemyX - enemy.R, enemyX + enemy.R) &&
                 inside((playerR), r / 2,

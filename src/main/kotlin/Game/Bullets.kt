@@ -7,5 +7,6 @@ class Bullets(var x:Float,
               var y:Float,
               val direct:Vector2f,
               val damage:Int,
-              val r:Float = 5F): Serializable{
+              val r:Float = 5F,
+              val owner:Player): Serializable{
 }

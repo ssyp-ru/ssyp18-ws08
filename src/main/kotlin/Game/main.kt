@@ -4,6 +4,7 @@ import org.newdawn.slick.AppGameContainer
 import org.newdawn.slick.SlickException
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.math.PI
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -14,6 +15,10 @@ fun inside(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
         x1 in y1..y2 -> true
         else -> false
     }
+}
+
+fun toDegree(someDouble: Double): Float {
+    return (someDouble / PI * 180).toFloat()
 }
 
 fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
