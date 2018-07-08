@@ -12,7 +12,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class Network(private val ip: String,
-              gameName: String,
+              private val gameName: String,
               private val isHost: Boolean,
               private val nick: String,
               gs: Serializable) {
@@ -23,9 +23,12 @@ class Network(private val ip: String,
     private val players = ArrayList<NetPlayer>()
     private var gameStarted = false
     private val syncer: NetSync
-    private var onliner: NetOnline? = null
+    //private var onliner: NetOnline? = null
     private var playersLock = ReentrantLock()
     private val actionsLock = ReentrantLock()
+    var hostExited
+        get() = lobby.hostExited
+        set(b){}
 
     init {
         lobby = NetLobby(gameName, isHost, nick, ip, this, players, playersLock)
@@ -70,10 +73,11 @@ class Network(private val ip: String,
         while (!gameStarted) {
             print("")
         }
+        syncer.setPlayers(players)
         actionsParser.start()
         syncer.start()
-        onliner = NetOnline(nick, ip, lobbyTopicName, getPlayersAsHashMap(), syncer)
-        onliner!!.setDaemon(true)
+        //onliner = NetOnline(nick, ip, lobbyTopicName, getPlayersAsHashMap(), syncer)
+        //onliner!!.setDaemon(true)
         //onliner!!.start()
     }
 
@@ -101,6 +105,13 @@ class Network(private val ip: String,
             toOut[players[i].nick]!!.position = i
         }
         return toOut
+    }
+
+    fun leaveLobby(){
+        if(!gameStarted){
+            prod.send(ProducerRecord(createLobbyTopicName(gameName),
+                    PartitionID.LOBBY.ordinal, "leave", nick)).get()
+        }
     }
 
     /*companion object {

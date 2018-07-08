@@ -1,7 +1,7 @@
-*.iml
-.idea	
-target
-*.txt
 *.dll
 *.xml
+.idea
+target
+*.txt
 .gitignor
+*.iml

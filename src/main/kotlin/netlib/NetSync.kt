@@ -9,14 +9,17 @@ import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.io.*
+import java.nio.charset.Charset
 import java.util.*
 import java.util.Arrays.asList
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane
+import kotlin.collections.ArrayList
 
 class NetSync(gs: Serializable,
               private var isHost: Boolean,
-              ip: String, nick: String,
+              ip: String,
+              private val nick: String,
               gameName: String) :
         Thread("Syncer") {
     private val prod: KafkaProducer<String, ByteArray>
@@ -24,6 +27,18 @@ class NetSync(gs: Serializable,
     private val topicName = "-LOBBY-$gameName"
     private var gsarr: ByteArray
     private var gsarrLock = ReentrantLock()
+    private val syncTime: Long = 1000
+    private var host = 0
+    private val cHost = 1.5f
+    var prevSync = System.currentTimeMillis()
+    var playersList = ArrayList<String>()
+    fun setPlayers(pl: ArrayList<NetPlayer>){
+        if(!this.isAlive){
+            for(p in pl){
+                playersList.add(p.nick)
+            }
+        }
+    }
     var gameState: Serializable = gs
         set(gs: Serializable) {
             if (isHost) {
@@ -62,7 +77,11 @@ class NetSync(gs: Serializable,
     }
 
     fun setHost(b: Boolean) {
+        gsarrLock.lock()
+        gsarr = serialize(gameState)
+        gsarrLock.unlock()
         isHost = b
+
         println(if (isHost) "ama host now" else "ama bomzh now")
     }
 
@@ -76,25 +95,63 @@ class NetSync(gs: Serializable,
     }*/
 
     override fun run() {
-
+        prevSync = System.currentTimeMillis()
         while (true) {
             if (isHost) {
                 gsarrLock.lock()
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
                 gsarrLock.unlock()
-                //println("send sync")
-                Thread.sleep(1000)
+                var playersString = "$host"
+                for(p in playersList){
+                    playersString += "|$p"
+                }
+                //println(playersString)
+                prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "playersList",
+                        playersString.toByteArray(Charset.defaultCharset())))
+                Thread.sleep(syncTime)
             } else {
                 val records = cons.poll(50)
-
                 for (r in records) {
-
-                    if (r.key() == "sync") {
+                    /*if (r.key() == "sync") {
+                        prevSync = System.currentTimeMillis()
                         //println("recieve sync")
                         //lock
                         gameState = deserialize(r.value())
                         //unlock
+                    }*/
+                    when(r.key()){
+                        "sync" -> {
+                            prevSync = System.currentTimeMillis()
+                            //println("recieve sync")
+                            //lock
+                            gameState = deserialize(r.value())
+                            //unlock
+                        }
+                        "host" -> {
+                            //println("azazazaz")
+                            setHost(r.value().toString() == nick)
+                            host = playersList.indexOf(r.value().toString())
+
+                            //prevSync = System.currentTimeMillis()
+                        }
+                        "playersList" -> {
+                            //println(r.value().toString(Charset.defaultCharset()))
+                            val tmp = r.value().toString(Charset.defaultCharset()).split('|')
+                            println(tmp[0])
+                            host = tmp[0].toInt()
+                            //playersList = ArrayList()
+                            for(i in 0..(playersList.size - 1))playersList[i] = tmp[i + 1]
+                        }
                     }
+                }
+                if((System.currentTimeMillis() - prevSync) > (syncTime * cHost)){
+                    host = if(host < (playersList.size - 1)) (host + 1) else 0
+                    println(host)
+                    if(nick == playersList[host]){
+                        prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "host", nick.toByteArray()))
+                        setHost(true)
+                    }
+                    prevSync = System.currentTimeMillis()
                 }
             }
         }
