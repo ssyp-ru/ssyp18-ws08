@@ -9,6 +9,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.io.*
+import java.nio.charset.Charset
 import java.util.*
 import java.util.Arrays.asList
 import java.util.concurrent.locks.ReentrantLock
@@ -94,12 +95,19 @@ class NetSync(gs: Serializable,
     }*/
 
     override fun run() {
-        var prevSync = System.currentTimeMillis()
+        prevSync = System.currentTimeMillis()
         while (true) {
             if (isHost) {
                 gsarrLock.lock()
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
                 gsarrLock.unlock()
+                var playersString = "$host"
+                for(p in playersList){
+                    playersString += "|$p"
+                }
+                //println(playersString)
+                prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "playersList",
+                        playersString.toByteArray(Charset.defaultCharset())))
                 Thread.sleep(syncTime)
             } else {
                 val records = cons.poll(50)
@@ -125,6 +133,14 @@ class NetSync(gs: Serializable,
                             host = playersList.indexOf(r.value().toString())
 
                             //prevSync = System.currentTimeMillis()
+                        }
+                        "playersList" -> {
+                            //println(r.value().toString(Charset.defaultCharset()))
+                            val tmp = r.value().toString(Charset.defaultCharset()).split('|')
+                            println(tmp[0])
+                            host = tmp[0].toInt()
+                            //playersList = ArrayList()
+                            for(i in 0..(playersList.size - 1))playersList[i] = tmp[i + 1]
                         }
                     }
                 }
