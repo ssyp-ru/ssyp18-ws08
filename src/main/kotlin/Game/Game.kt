@@ -258,14 +258,13 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                     i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
                 }
             }
-            val cameraShift = 5
             if (gs.players[nick] == null) return
             gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                                         gs.players[nick]!!.y - HPbarDislocationHeight)
             gs.players[nick]!!.drawReload(g,gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
 
-            UI.drawScore(g, gs, -camera.x.toFloat() + cameraShift, -camera.y.toFloat())
+            UI.drawUI(g, gs, -camera.x.toFloat(), -camera.y.toFloat())
 
             //minimap.update(gs.players, g, gc, minimapImage)
         }

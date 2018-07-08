@@ -119,10 +119,12 @@ class Player(var x: Float,
         val widthBar : Float = 100f
         val heightBar : Float = 20f
         g.color = Color(0f, 0f, 0f)
-        g.fillRect(x - 2, y, widthBar + 4, heightBar + 3)
+        var barShift = 2
+        g.fillRect(x - barShift, y, widthBar + barShift * 2, heightBar + barShift)
         g.color = Color(1f,0f,0f)
-        g.fillRect(x, y + 2, widthBar * this.HP / maxHP, heightBar)
+        g.fillRect(x, y + barShift, widthBar * this.HP / maxHP, heightBar)
         g.color = Color.white
-        g.drawString("HP: $HP", x, y - 4f)
+        barShift = 5
+        g.drawString("HP: $HP", x, y - barShift)
     }
 }

@@ -19,5 +19,9 @@ class UserInterface(val nick : String) {
         }
     }
 
+    fun drawUI(g : Graphics, gs : GameState, x : Float, y : Float){
+        val tableSHift = 5
+        drawScore(g, gs, x + tableSHift, y)
+    }
 
 }
