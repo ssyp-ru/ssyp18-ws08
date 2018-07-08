@@ -21,13 +21,13 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
-    private var cells = Array<Array<Cell>>(102) {Array<Cell>(99, {i -> Cell(0, 0, 0)})}
-    //private lateinit var minimap: Minimap
+    private lateinit var minimap: Minimap
     private lateinit var minimapImage: Image
     private var tileID: Int = 0
     private lateinit var value: String
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
+    private var cells = Array<Array<Cell>>(mapHeight) {Array<Cell>(mapWidth, {i -> Cell(0, 0, "Grass")})}
     private var tileHeight: Int = 0
     private var tileWidth: Int = 0
     private lateinit var camera: Camera
@@ -58,22 +58,39 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         mapWidth = map.width * map.tileWidth
         tileHeight = map.tileHeight
         tileWidth = map.tileWidth
+        minimapImage = Image(0, 0)
         comic = TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 20), false)
         color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
-                cells[i][j] = Cell(i * 37, j * 37, 0)
+                cells[i][j] = Cell(i * tileWidth, j * tileHeight, "Grass")
                 when{
-                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 1)
-                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 2)
-                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 4)
-                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 5)
+                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * tileWidth,
+                            j * tileHeight, "Roads")
+                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * tileWidth,
+                            j * tileHeight, "Crates")
+                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * tileWidth,
+                            j * tileHeight, "Water")
+                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * tileWidth,
+                            j * tileHeight, "Houses")
 
                 }
             }
         }
-        //minimap = Minimap(cells, nick)
-        minimapImage = Image("res/map/Minimap.png")
+        for (i in 0..(cells.size - 1)){
+            for (j in 0..(cells[i].size - 1)){
+                when{
+                    (cells[i][j].type == "Roads") -> minimapImage.graphics.color = Color.gray
+                    (cells[i][j].type == "Crates") -> minimapImage.graphics.color = Color.red
+                    (cells[i][j].type == "Grass") -> minimapImage.graphics.color = Color.green
+                    (cells[i][j].type == "Water") -> minimapImage.graphics.color = Color.blue
+                    (cells[i][j].type == "Houses") -> minimapImage.graphics.color = Color.yellow
+                }
+                minimapImage.graphics.drawRect((cells[i][j].x / tileWidth.toFloat()),
+                        (cells[i][j].y / tileHeight.toFloat()), 4f, 4f)
+            }
+        }
+        minimap = Minimap(cells, nick)
         camera = Camera(map, mapWidth, mapHeight)
     }
 
@@ -82,7 +99,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(7777f, 1337f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
+                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
             }
             playersCreated = true
             for(p in gs.players){
@@ -235,7 +252,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
             }
             if (gs.players[nick] == null) return
             gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - 14.87f, gs.players[nick]!!.y - 52.5f)
-            //minimap.update(gs.players, g, gc, minimapImage)
+            minimap.update(gs.players, g, gc, minimapImage)
         }
     }
 }

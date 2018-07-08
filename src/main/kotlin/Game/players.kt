@@ -45,7 +45,7 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
     fun hit(arrPLayers:ArrayList<Player>, i:Int, cells:Array<Array<Cell>>) {
         for (n in 0..(cells.size - 1)){
             for (m in 0..(cells.size - 1)){
-                if (cells[n][m].type > 1) {
+                if ((cells[n][m].type == "Crates") || (cells[n][m].type == "Water") || (cells[n][m].type == "Houses")) {
                     val dis = distance(x, y, (cells[n][m].x.toFloat()), (cells[n][m].y.toFloat()))
                     if ((dis < R + 78)) {
                         val b1 = Vector2f(x - (cells[n][m].x), y - (cells[n][m].y)).normalise().scale((R - dis + 33) / 2)
