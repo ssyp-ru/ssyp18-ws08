@@ -212,6 +212,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
     override fun render(gc: GameContainer, g: Graphics) {
+        val HPbarDislocationHeight = 52.5f
+        val HPbarDislocationWidth =  27.5f
         if (!net.getGameStarted()) {
             var y = 20f
             for (p in net.getPlayers()) {
@@ -230,11 +232,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 i.value.weapon.draw(g, gs.bullets)
                 i.value.draw(g)
                 if(i.key != nick){
-                    i.value.drawHP(g, i.value.x - 27.5f, i.value.y - 52.5f)
+                    i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
                 }
             }
             if (gs.players[nick] == null) return
-            gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - 27.5f, gs.players[nick]!!.y - 52.5f)
+            gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - HPbarDislocationWidth,
+                                        gs.players[nick]!!.y - HPbarDislocationHeight)
             //minimap.update(gs.players, g, gc, minimapImage)
         }
     }

@@ -1,7 +1,4 @@
-package game
-
-import org.junit.Test
-import kotlin.test.assertEquals
+package Game
 
 class HelloTest {
 

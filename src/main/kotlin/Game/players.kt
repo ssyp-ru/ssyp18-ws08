@@ -12,9 +12,18 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.math.*
 
-class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var velocity: Vector2f = Vector2f(0f, 0f),
-             var shot:Boolean = false, val mouseVec: Vector2f, val R:Float = 20F, val speed:Float = 5F,
-             val IDWeapon:Int = 1, var isDead : Boolean = false): Serializable {
+class Player(var x: Float,
+             var y: Float,
+             var HP:Int,
+             val nick:String,
+             var velocity: Vector2f = Vector2f(0f, 0f),
+             var shot:Boolean = false,
+             val mouseVec: Vector2f,
+             val R:Float = 20F,
+             val speed:Float = 5F,
+             val IDWeapon:Int = 1,
+             var isDead : Boolean = false): Serializable {
+    
     var weapon = when (IDWeapon){
         1 -> Rapier(x, y, R, mouseVec)
         101 -> Pistol(x, y, R, mouseVec)
