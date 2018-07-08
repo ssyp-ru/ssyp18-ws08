@@ -13,13 +13,17 @@ import kotlin.collections.HashMap
 import kotlin.math.*
 
 class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var velocity: Vector2f = Vector2f(0f, 0f),
-             var shot:Boolean = false, val mouseVec: Vector2f, val R:Float = 20F, val speed:Float = 5F,
-             val IDWeapon:Int = 1, var isDead : Boolean = false): Serializable {
-    var weapon = when (IDWeapon){
+             var shot:Boolean = false,  var punch:Boolean = false, var mouseVec: Vector2f, val R:Float = 16F, val speed:Float = 5F,
+             val IDMeeleeWeapon:Int = 0, val IDRangedWeapon:Int = 0, var isDead : Boolean = false): Serializable {
+    var meeleeWeapon = when (IDMeeleeWeapon){
         1 -> Rapier(x, y, R, mouseVec)
-        101 -> Pistol(x, y, R, mouseVec)
         else -> Knife(x, y, R, mouseVec)
     }
+    var rangedWeapon = when (IDRangedWeapon){
+        1 -> MiniGun(x, y, R, mouseVec)
+        else -> Pistol(x, y, R, mouseVec)
+    }
+
     var colorPlayer = org.newdawn.slick.Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
 
     fun draw(g: org.newdawn.slick.Graphics) {
@@ -34,11 +38,19 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
         movement.normalise().scale(tempForSpeed)
         x += movement.x
         y += movement.y
+
+        meeleeWeapon.mouseVec = mouseVec
+        rangedWeapon.mouseVec = mouseVec
+
         if (shot && HP>0) {
-            weapon.attack(arrayPlayers, i, arrBullets)
+            rangedWeapon.attack(arrayPlayers, i, arrBullets)
+        }
+        if (punch && HP>0) {
+            meeleeWeapon.attack(arrayPlayers, i, arrBullets)
         }
         velocity = Vector2f(0f, 0f)
         shot= false
+        punch = false
     }
 
 
@@ -67,20 +79,22 @@ class Player(var x: Float, var y: Float, var HP:Int, val nick:String, var veloci
                 arrPLayers[k].y += b2.y
             }
         }
-        weapon.playerX = x
-        weapon.playerY = y
+        meeleeWeapon.playerX = x
+        meeleeWeapon.playerY = y
+        rangedWeapon.playerX = x
+        rangedWeapon.playerY = y
     }
 
     fun drawHP(g : Graphics, x : Float, y : Float){
         if(isDead) return
         val maxHP = 5
-        val widthBar : Float = 100f
-        val heightBar : Float = 20f
+        val widthReloadBar : Float = 100f
+        val heightReloadBar : Float = 20f
         g.color = Color(0f, 0f, 0f)
-        g.fillRect(x - 2, y, widthBar + 4, heightBar - 1)
-        g.color = Color(1f,0f,0f)
-        g.fillRect(x, y + 2, widthBar * this.HP / maxHP, heightBar)
+        g.fillRect(x - 2, y, widthReloadBar + 4, heightReloadBar)
+        g.color = Color.yellow
+        g.fillRect(x, y + 2F, widthReloadBar * rangedWeapon.cooldownCounter / rangedWeapon.cooldown, heightReloadBar - 4F)
         g.color = Color.white
-        g.drawString("HP: $HP", x, y + 2.5f)
+        g.drawString("ammo: ${rangedWeapon.ammoCounter}", x, y - 4F)
     }
 }
