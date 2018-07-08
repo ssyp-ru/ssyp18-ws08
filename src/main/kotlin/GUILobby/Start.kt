@@ -1,8 +1,8 @@
-package GUI
+package GUILobby
 
+import GUI.Button
 import org.newdawn.slick.GameContainer
 import org.newdawn.slick.Image
-import org.newdawn.slick.Input
 
 class Start(gc: GameContainer) : Button(gc,
         imageCommon = Image("res/start1.png"),
@@ -10,6 +10,6 @@ class Start(gc: GameContainer) : Button(gc,
         imageClicked = Image("res/start3.png"),
         sizeX = gc.screenWidth.toFloat() / 3f,
         sizeY = gc.screenWidth.toFloat() / 8f,
-        xButton = gc.screenWidth.toFloat() / 3f,
-        yButton = gc.screenHeight.toFloat() / 12f) {
+        xButton = gc.screenWidth.toFloat() - gc.screenWidth.toFloat() / 3f,
+        yButton = gc.screenHeight.toFloat() - gc.screenWidth.toFloat() / 8f) {
 }

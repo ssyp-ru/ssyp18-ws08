@@ -3,7 +3,7 @@ package GUI
 import org.newdawn.slick.GameContainer
 import org.newdawn.slick.Image
 
-class Regulations(gc: GameContainer) : Button(
+class Regulations(gc: GameContainer) : Button(gc,
         imageCommon = Image("res/menu.png"),
         imageLighted = Image("res/menu.png"),
         imageClicked = Image("res/menu.png"),
