@@ -21,7 +21,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
-    private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
+    private var cells = Array<Array<Cell>>(102) {Array<Cell>(99, {i -> Cell(0, 0, 0)})}
     //private lateinit var minimap: Minimap
     private lateinit var minimapImage: Image
     private var tileID: Int = 0
@@ -62,12 +62,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
-                cells[i][j] = Cell(i * 32, j * 32, 0)
+                cells[i][j] = Cell(i * 37, j * 37, 0)
                 when{
-                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 1)
-                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 2)
-                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 4)
-                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * 32, j * 32, 5)
+                    (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 1)
+                    (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 2)
+                    (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 4)
+                    (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * 37, j * 37, 5)
 
                 }
             }
@@ -82,7 +82,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for(p in plrs){
-                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
+                gs.players[p.key] = Player(7777f, 1337f, 5, p.key, mouseVec = Vector2f(1f, 1f), IDWeapon = 101)
             }
             playersCreated = true
             for(p in gs.players){
@@ -215,9 +215,9 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         val HPbarDislocationHeight = 52.5f
         val HPbarDislocationWidth =  27.5f
         if (!net.getGameStarted()) {
-            var y = 20f
+            var y = 0f
             for (p in net.getPlayers()) {
-                g.drawString(p.nick, 10f, y)
+                g.drawString(p.nick, 2.88f, y)
                 y += 20
             }
         } else if(playersCreated){
