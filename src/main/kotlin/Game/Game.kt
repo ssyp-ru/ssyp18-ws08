@@ -1,69 +1,51 @@
 package Game
 
-import netlib.Network
 //import netlib.Players
+//import sun.nio.ch.Net
+import GUILobby.Lobby
+import netlib.Network
 import org.newdawn.slick.*
-import org.newdawn.slick.geom.Rectangle
-import java.awt.MouseInfo
-import java.util.*
 import org.newdawn.slick.geom.Vector2f
 import org.newdawn.slick.tiled.TiledMap
 import java.awt.Font
-//import sun.nio.ch.Net
+import java.util.*
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
 import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.system.exitProcess
 
-class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
+class Game(var gc: GameContainer, val gameName: String,
+           var nick: String, var isHost: Boolean) {
 
     var gs = GameState()
 
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
-    private var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, 0)})}
+    private var cells = Array<Array<Cell>>(100) { Array<Cell>(100, { i -> Cell(0, 0, 0) }) }
     //private lateinit var minimap: Minimap
     private lateinit var minimapImage: Image
     private var tileID: Int = 0
     private lateinit var value: String
+    lateinit var lob:Lobby
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
     private var tileHeight: Int = 0
     private var tileWidth: Int = 0
     private lateinit var camera: Camera
-    var isHost = false
+    var exited =false
     val net: Network
-    val gameName: String
-    var nick: String
+
     private var playersCreated = false
     private var isGameOver = false
+
     init {
-        print("Host?")
-        isHost = readLine()!!.toBoolean()
-        print("Game name?")
-        gameName = readLine()!!
-        print("Nick?")
-        nick = readLine()!!
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
+        lob= Lobby(gc,isHost,net,gameName)
         playersCreated = false
-    }
-
-    override fun keyPressed(key: Int, c: Char) {
-        //print("ff")
-        when(key){
-            Input.KEY_ESCAPE -> {
-                leaveLobby()
-                exitProcess(0)
-            }
-        }
-    }
-
-    override fun init(gc: GameContainer) {
         gc.setVSync(true)
         gc.alwaysRender = true
-
-
         map = TiledMap("res/map/FirstFowlMap.TMX")
         mapHeight = map.height * map.tileHeight
         mapWidth = map.width * map.tileWidth
@@ -74,7 +56,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
                 cells[i][j] = Cell(i * tileWidth, j * tileHeight, 0)
-                when{
+                when {
                     (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
                             1)
                     (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
@@ -92,25 +74,31 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         camera = Camera(map, mapWidth, mapHeight)
     }
 
-    override fun update(gc: GameContainer, i: Int) {
-        if(!net.getGameStarted() and gc.input.isKeyDown(Input.KEY_ENTER))net.startGame()
+
+
+
+    fun update() {
+        if (!net.getGameStarted() ) {
+            lob.lobbyUpdate()
+            exited=lob.exited
+        }
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
-            for(p in plrs){
+            for (p in plrs) {
                 gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f),
                         IDMeeleeWeapon = 1, IDRangedWeapon = 1)
             }
             playersCreated = true
-            for(p in gs.players){
+            for (p in gs.players) {
                 println("${p.key} - ${p.value}")
             }
         } else if (net.getGameStarted() and playersCreated) {
             //SYNC
             val tmp = net.gameState
             if (tmp is GameState) gs = tmp
-            
+
             val acts = net.getActions()
-            for(a in acts){
+            for (a in acts) {
                 try {
                     when (a.name) {
                     /**/
@@ -121,16 +109,16 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                         "direction" -> gs.players[a.sender]!!.mouseVec = Vector2f(a.params[0].toFloat(),
                                 a.params[1].toFloat())
                     }
-                }catch(e: NullPointerException){
+                } catch (e: NullPointerException) {
                     println("${a.sender} alredy dead, skipping...")
                 }
             }
-            if(gs.players.containsKey(nick))myControls(gc)
+            if (gs.players.containsKey(nick)) myControls(gc)
             allMove(gc)
             var meeleeGun: Weapon
             var rangedGun: Weapon
             for (i in gs.players) {
-                if(i.value.isDead)continue
+                if (i.value.isDead) continue
                 meeleeGun = i.value.meeleeWeapon
                 rangedGun = i.value.rangedWeapon
                 meeleeGun.cooldownCounter += if (meeleeGun.cooldownCounter <
@@ -144,8 +132,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     private fun deathCheck() {
         //val toKill = ArrayList<String>()
-        for(p in gs.players){
-            if(p.value.HP <= 0) {
+        for (p in gs.players) {
+            if (p.value.HP <= 0) {
                 p.value.isDead = true
                 //if(p.value.nick == nick)isGameOver = true
                 //toKill.add(p.key)
@@ -156,7 +144,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     private fun myControls(gc: GameContainer) {
         //println(playersCreated)
-        if(gs.players[nick]!!.isDead)return
+        if (gs.players[nick]!!.isDead) return
         val input = gc.input
         if (input.isKeyDown(Input.KEY_D)) {
             gs.players[nick]!!.velocity.x += 1f
@@ -190,12 +178,12 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     }
 
 
-    private fun checkHit(){
+    private fun checkHit() {
         val toRemove = ArrayList<Bullets>()
-        for(i in gs.players) {
+        for (i in gs.players) {
             for (j in gs.bullets) {
                 if (distance(i.value.x + i.value.R, i.value.y + i.value.R, j.x + (j.r), j.y + (j.r))
-                        <= i.value.R + (j.r)){
+                        <= i.value.R + (j.r)) {
                     i.value.HP -= j.damage
                     toRemove.add(j)
                 }
@@ -203,7 +191,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
                 if (j.x > map.width * map.tileWidth || j.x < 0) toRemove.add(j)
             }
         }
-        for(b in toRemove){
+        for (b in toRemove) {
             gs.bullets.remove(b)
         }
 
@@ -214,7 +202,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         for (i in gs.players) {
             i.value.controlPlayer(gc, gs.players, i.value, gs.bullets)
             if (i.value.isDead) continue
-            for (k in gs.bullets){
+            for (k in gs.bullets) {
                 arrAllBullets.add(k)
                 k.x += k.direct.x
                 k.y += k.direct.y
@@ -226,54 +214,62 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
         //костыли
         val tmp = ArrayList<Player>()
-        for(p in gs.players)tmp.add(p.value)
+        for (p in gs.players) tmp.add(p.value)
         for (i in 0..(tmp.size - 1)) {
-            if(tmp[i].isDead)continue
+            if (tmp[i].isDead) continue
             tmp[i].hit(tmp, i, cells)
         }
-        for(p in tmp)gs.players[p.nick] = p
+        for (p in tmp) gs.players[p.nick] = p
         //конец косытлей
     }
 
-    override fun render(gc: GameContainer, g: Graphics) {
+    fun render(g: Graphics) {
         val HPbarDislocationHeight = 52.5f
-        val HPbarDislocationWidth =  27.5f
+        val HPbarDislocationWidth = 27.5f
 
         if (!net.getGameStarted()) {
-            if(net.hostExited){
-                println("Host livnul, rashodimsya...")
-                exitProcess(0)
-            }
-            var y = 0f
-            for (p in net.getPlayers()) {
-                g.drawString(p.nick, 2.88f, y)
-                y += 20
-            }
-        } else if(playersCreated){
-            if(gs.players.containsKey(nick))camera.translate(g, gs.players[nick]!!, gc)
+            lob.lobbyRender(g)
+        } else if (playersCreated) {
+            if (gs.players.containsKey(nick)) camera.translate(g, gs.players[nick]!!, gc)
             g.background = Color.blue
             map.render(0, 0)
             g.font = comic
             g.color = color
             g.drawString("SSYP 20!8", 10f, 10f)
             for (i in gs.players) {
-                if(i.value.isDead)continue
+                if (i.value.isDead) continue
                 i.value.meeleeWeapon.draw(g, gs.bullets)
                 i.value.rangedWeapon.draw(g, gs.bullets)
                 i.value.draw(g)
-                if(i.key != nick){
+                if (i.key != nick) {
                     i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
                 }
             }
             if (gs.players[nick] == null) return
             gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - HPbarDislocationWidth,
-                                        gs.players[nick]!!.y - HPbarDislocationHeight)
-            gs.players[nick]!!.drawReload(g,gs.players[nick]!!.x - HPbarDislocationWidth,
+                    gs.players[nick]!!.y - HPbarDislocationHeight)
+            gs.players[nick]!!.drawReload(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
             //minimap.update(gs.players, g, gc, minimapImage)
         }
     }
-    fun leaveLobby(){
+
+    fun leaveLobby() {
         net.leaveLobby()
     }
+}
+
+
+//Какого плакплак это было в мэйне!!!11???????777
+fun inside(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
+    return when {
+        y1 in x1..x2 -> true
+        y2 in x1..x2 -> true
+        x1 in y1..y2 -> true
+        else -> false
+    }
+}
+
+fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
+    return (sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
 }
