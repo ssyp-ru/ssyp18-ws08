@@ -11,6 +11,8 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.io.*
 import java.util.*
 import java.util.Arrays.asList
+import java.util.concurrent.locks.ReentrantLock
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane
 
 class NetSync(gs: Serializable,
               private var isHost: Boolean,
@@ -21,9 +23,14 @@ class NetSync(gs: Serializable,
     private val cons: KafkaConsumer<String, ByteArray>
     private val topicName = "-LOBBY-$gameName"
     private var gsarr: ByteArray
+    private var gsarrLock = ReentrantLock()
     var gameState: Serializable = gs
         set(gs: Serializable) {
-            if (isHost) gsarr = serialize(gs)
+            if (isHost) {
+                gsarrLock.lock()
+                gsarr = serialize(gs)
+                gsarrLock.unlock()
+            }
             field = gs
         }
 
@@ -43,10 +50,11 @@ class NetSync(gs: Serializable,
         prodProperties.setProperty("value.serializer", ByteArraySerializer::class.java.name)
         prodProperties.setProperty("retries", "5")
         prodProperties.setProperty("acks", "1")
+        //prodProperties.setProperty("buffer.memory", "1000")
         prod = KafkaProducer(prodProperties)
 
-        cons.assign(asList(TopicPartition(topicName, Network.SYNC)))
-        cons.seekToEnd(asList(TopicPartition(topicName, Network.SYNC)))
+        cons.assign(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
+        cons.seekToEnd(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
         //gameState = gs
         gsarr = serialize(gs)
 
@@ -68,13 +76,17 @@ class NetSync(gs: Serializable,
     }*/
 
     override fun run() {
+
         while (true) {
             if (isHost) {
-                prod.send(ProducerRecord(topicName, Network.SYNC, "sync", gsarr))
+                gsarrLock.lock()
+                prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
+                gsarrLock.unlock()
                 //println("send sync")
-                Thread.sleep(2950)
+                Thread.sleep(1000)
             } else {
                 val records = cons.poll(50)
+
                 for (r in records) {
 
                     if (r.key() == "sync") {

@@ -1,8 +1,9 @@
 package Game
 
 import org.newdawn.slick.geom.Vector2f
+import java.io.Serializable
 
-abstract class Weapon(){
+abstract class Weapon(): Serializable{
     abstract fun attack(arrPlayers:HashMap<String, Player>, k:Player, arrBullets:ArrayList<Bullets>)
     abstract var playerX:Float
     abstract var playerY:Float
