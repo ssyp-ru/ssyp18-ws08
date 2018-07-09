@@ -114,8 +114,9 @@ class Game(var gc: GameContainer, val gameName: String,
             }
             val plrs = net.getPlayersAsHashMap()
             for (p in plrs) {
-                gs.players[p.key] = Player(1800f, 1800f, 100, p.key, mouseVec = Vector2f(1f, 1f),
-                        numMeeleeWeapon = 0, numRangedWeapon = 0)
+                val randomIndex = Random().nextInt(teleport.size - 1)
+                gs.players[p.key] = Player(teleport[randomIndex].x, teleport[randomIndex].y, 100, p.key,
+                        mouseVec = Vector2f(1f, 1f), numMeeleeWeapon = 0, numRangedWeapon = 0)
             }
             playersCreated = true
             for (p in gs.players) {
