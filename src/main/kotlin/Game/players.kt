@@ -170,7 +170,7 @@ class Player(var x: Float,
         var barShift = 2
         g.fillRect(x - barShift, y, widthBar + barShift * 2, heightBar + barShift)
         g.color = Color(1f,0f,0f)
-        g.fillRect(x, y + barShift, widthBar * this.HP / maxHP, heightBar)
+        g.fillRect(x, y + barShift, widthBar * (if(this.HP < 0) 0f else this.HP / maxHP.toFloat()), heightBar)
         g.color = Color.white
         barShift = 5
         g.drawString("HP: $HP", x, y - barShift)

@@ -44,6 +44,11 @@ class Game(var gc: GameContainer, val gameName: String,
     val net: Network
     private var playersCreated = false
     private lateinit var UI : UserInterface
+    val weaponIcons = arrayOf(
+            Image("res/animations/knife.png"), Image("res/animations/rapier.png"),
+            Image("res/animations/rapier.png"), Image("res/animations/pistol.png"),
+            Image("res/animations/minigun.png"), Image("res/animations/AWP.png")
+    )
 
     init {
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
@@ -82,7 +87,7 @@ class Game(var gc: GameContainer, val gameName: String,
             }
         }
         camera = Camera()
-        UI = UserInterface(gc, gs, nick, cells)
+        UI = UserInterface(gc, gs, nick, cells, weaponIcons)
     }
 
 
@@ -171,6 +176,7 @@ class Game(var gc: GameContainer, val gameName: String,
 
             net.gameState = gs
         }
+        UI.syncState(gs)
     }
 
     private fun myControls(gc: GameContainer) {
@@ -342,7 +348,7 @@ class Game(var gc: GameContainer, val gameName: String,
             gs.players[nick]!!.drawReload(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
             UI.drawUI(g, -camera.x.toFloat(), -camera.y.toFloat())
-            for (i in gs.weaponSpawn) i.draw(g)
+            for (i in gs.weaponSpawn) i.draw(g, weaponIcons)
         }
     }
 
