@@ -126,14 +126,14 @@ class Player(var x: Float,
                         is Awp -> Awp(x, y, R, mouseVec)
                         else -> Pistol(x, y, R, mouseVec)
                     }
-                    for (i in arrayRangedWeapon) {
-                        if (i.javaClass.name == giveRangedWeapon.javaClass.name) flag = true
+                    for (rangeWeapon in arrayRangedWeapon) {
+                        if (rangeWeapon.javaClass.name == giveRangedWeapon.javaClass.name) flag = true
                     }
                     if (!flag) {arrayRangedWeapon.add(giveRangedWeapon);weapon.loot = null;weapon.duration = 0F}
                 }
                 if (weapon.loot is Rapier){
-                    for (i in arrayMeeleeWeapon)
-                        if (i.javaClass.name == "Rapier") flag = true
+                    for (meeleeWeapon in arrayMeeleeWeapon)
+                        if (meeleeWeapon::class == Rapier::class) flag = true
                     if (!flag) {arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec));weapon.loot = null;weapon.duration = 0F}
                 }
             }
