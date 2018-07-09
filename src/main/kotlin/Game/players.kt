@@ -33,11 +33,11 @@ class Player(var x: Float,
 
     init{
         arrayMeeleeWeapon.add(Knife(x, y, R, mouseVec))
-        arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec))
-        arrayMeeleeWeapon.add(DeathPuls(x, y, R, mouseVec))
-        arrayRangedWeapon.add(Pistol(x, y, R, mouseVec))
-        arrayRangedWeapon.add(MiniGun(x, y, R, mouseVec))
-        arrayRangedWeapon.add(Awp(x, y, R, mouseVec))
+//        arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec))
+//        arrayMeeleeWeapon.add(DeathPuls(x, y, R, mouseVec))
+//        arrayRangedWeapon.add(Pistol(x, y, R, mouseVec))
+//        arrayRangedWeapon.add(MiniGun(x, y, R, mouseVec))
+//        arrayRangedWeapon.add(Awp(x, y, R, mouseVec))
     }
 
     fun draw(g: org.newdawn.slick.Graphics) {
@@ -59,7 +59,7 @@ class Player(var x: Float,
     }
 
 
-    fun controlPlayer(gc:GameContainer, arrayPlayers:HashMap<String, Player>, i:Player, arrBullets:ArrayList<Bullets>){
+    fun controlPlayer(arrayPlayers:HashMap<String, Player>, i:Player, arrBullets:ArrayList<Bullets>){
         val tempForSpeed = speed
         val movement = Vector2f(0F, 0F)
         movement.x += velocity.x
@@ -86,7 +86,7 @@ class Player(var x: Float,
     }
 
 
-    fun hit(arrPLayers: ArrayList<Player>, i: Int, cells: Array<Array<Cell>>) {
+    fun hit(arrPLayers: ArrayList<Player>, i: Int, cells: Array<Array<Cell>>, drop:ArrayList<WeaponMap>) {
         for (n in 0..(cells.size - 1)) {
             for (m in 0..(cells.size - 1)) {
                 if ((cells[n][m].type == layer.CRATES) || (cells[n][m].type == layer.WATER) ||
@@ -101,8 +101,9 @@ class Player(var x: Float,
                 }
             }
         }
+        var dis:Float
         for (k in (i + 1)..(arrPLayers.size - 1)){
-            val dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)
+            dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)
             if (dis < R + arrPLayers[k].R) {
                 val b2 = Vector2f(arrPLayers[k].x - x, arrPLayers[k].y - y).normalise().scale((R
                         + arrPLayers[k].R - dis) / 2)
@@ -112,6 +113,29 @@ class Player(var x: Float,
                 y += b1.y
                 arrPLayers[k].x += b2.x
                 arrPLayers[k].y += b2.y
+            }
+        }
+        for (weapon in drop){
+            dis = distance(x, y, weapon.vect.x, weapon.vect.y)
+            if (dis <= 2*R){
+                var flag = false
+                if (weapon.loot is RangedWeapon) {
+                    val giveRangedWeapon = when (weapon.loot) {
+                        is Pistol -> Pistol(x, y, R, mouseVec)
+                        is MiniGun -> MiniGun(x, y, R, mouseVec)
+                        is Awp -> Awp(x, y, R, mouseVec)
+                        else -> Pistol(x, y, R, mouseVec)
+                    }
+                    for (i in arrayRangedWeapon) {
+                        if (i.javaClass.name == giveRangedWeapon.javaClass.name) flag = true
+                    }
+                    if (!flag) {arrayRangedWeapon.add(giveRangedWeapon);weapon.loot = null;weapon.duration = 0F}
+                }
+                if (weapon.loot is Rapier){
+                    for (i in arrayMeeleeWeapon)
+                        if (i.javaClass.name == "Rapier") flag = true
+                    if (!flag) {arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec));weapon.loot = null;weapon.duration = 0F}
+                }
             }
         }
         if (numMeeleeWeapon <= arrayMeeleeWeapon.size - 1) {

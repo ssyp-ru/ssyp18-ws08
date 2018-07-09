@@ -33,23 +33,16 @@ class Game(var gc: GameContainer, val gameName: String,
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
     var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, layer.GRASS)})}
-    //private lateinit var minimap: Minimap
-    private lateinit var minimapImage: Image
-    private var tileID: Int = 0
-    private lateinit var value: String
+    var teleport = ArrayList<Vector2f>()//minigan --- x = 1456, y = 1392
     lateinit var lob:Lobby
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
     private var tileHeight: Int = 0
     private var tileWidth: Int = 0
     private lateinit var camera: Camera
-    private var minimapSize = 0
-    var isMinimapRendered = false
     var exited =false
     val net: Network
-
     private var playersCreated = false
-    private var isGameOver = false
     private lateinit var UI : UserInterface
 
     init {
@@ -58,7 +51,7 @@ class Game(var gc: GameContainer, val gameName: String,
         playersCreated = false
         gc.setVSync(true)
         gc.alwaysRender = true
-        map = TiledMap("res/map/FirstFowlMap.TMX")
+        map = TiledMap("res/map/FowlMap2.TMX")
         mapHeight = map.height * map.tileHeight
         mapWidth = map.width * map.tileWidth
         tileHeight = map.tileHeight
@@ -79,9 +72,16 @@ class Game(var gc: GameContainer, val gameName: String,
                             layer.HOUSES)
 
                 }
+                if (map.getTileId(i, j, 5) != 0){
+                    teleport.add(Vector2f(i * tileWidth.toFloat(), j * tileHeight.toFloat()))
+                }
+                if (map.getTileId(i, j, 6) != 0){
+                    gs.weaponSpawn.add(WeaponMap(Vector2f(i * tileWidth.toFloat(), j * tileHeight.toFloat()),
+                            3500f))
+                }
             }
         }
-        camera = Camera(map, mapWidth, mapHeight)
+        camera = Camera()
         UI = UserInterface(gc, gs, nick, cells)
     }
 
@@ -157,6 +157,18 @@ class Game(var gc: GameContainer, val gameName: String,
                         rangedGun.cooldown) 1 else 0
                 }
             }
+
+            for (weapon in gs.weaponSpawn){
+                if (weapon.duration == 60 * 60F) {
+                    weapon.loot = when (Random().nextInt(4)){
+                        0 -> Pistol (0F, 0F, 0F, Vector2f(1f,1f))
+                        1 -> Awp (0F, 0F, 0F, Vector2f(1f,1f))
+                        else -> Rapier (0F, 0F, 0F, Vector2f(1f,1f))
+                    }
+                }
+                ++weapon.duration
+            }
+
             net.gameState = gs
         }
     }
@@ -221,6 +233,19 @@ class Game(var gc: GameContainer, val gameName: String,
 
     private fun checkHit() {
         val toRemove = ArrayList<Bullets>()
+        for (i in cells) {
+            for (k in i) {
+                for (j in gs.bullets) {
+                    if ((distance(k.x + tileWidth / 2f, k.y + tileHeight / 2f, j.x + (j.r), j.y + (j.r))
+                            <= tileWidth / 2f + (j.r)) && (k.type == layer.HOUSES)) {
+                        toRemove.add(j)
+                    }
+                }
+            }
+        }
+        for (b in toRemove) {
+            gs.bullets.remove(b)
+        }
         for (i in gs.players) {
             for (j in gs.bullets) {
                 if (distance(i.value.x + i.value.R, i.value.y + i.value.R, j.x + (j.r), j.y + (j.r))
@@ -244,7 +269,7 @@ class Game(var gc: GameContainer, val gameName: String,
 
     private fun allMove(gc: GameContainer) {
         for (i in gs.players) {
-            i.value.controlPlayer(gc, gs.players, i.value, gs.bullets)
+            i.value.controlPlayer(gs.players, i.value, gs.bullets)
         }
         for (k in gs.bullets) {
             k.x += k.direct.x
@@ -264,22 +289,23 @@ class Game(var gc: GameContainer, val gameName: String,
             }
         }
         if (gmr.HP <= 0) {
-            gmr.x = Random().nextInt(((map.height * map.tileHeight - gmr.R * 2).toInt())).toFloat()
-            gmr.y = Random().nextInt(((map.width * map.tileWidth - gmr.R * 2).toInt())).toFloat()
+            val randomIndex = Random().nextInt(teleport.size - 1)
+            gmr.x = teleport[randomIndex].x
+            gmr.y = teleport[randomIndex].y
             gmr.HP = gmr.maxHP
             ++gmr.deaths
             gmr.killStreak = 0
+            net.doAction("ressurection", asList("${gmr.x}", "${gmr.y}"))
             gmr.arrayRangedWeapon = ArrayList<RangedWeapon>()
             gmr.arrayMeeleeWeapon = ArrayList<Meelee>()
             gmr.arrayMeeleeWeapon.add(Knife(gmr.x, gmr.y, gmr.R, gmr.mouseVec))
-            net.doAction("ressurection", asList("${gmr.x}", "${gmr.y}"))
         }
 
         //костыли
         val tmp = ArrayList<Player>()
         for (p in gs.players) tmp.add(p.value)
         for (i in 0..(tmp.size - 1)) {
-            tmp[i].hit(tmp, i, cells)
+            tmp[i].hit(tmp, i, cells, gs.weaponSpawn)
         }
         for (p in tmp) gs.players[p.nick] = p
         //конец косытлей
@@ -316,6 +342,7 @@ class Game(var gc: GameContainer, val gameName: String,
             gs.players[nick]!!.drawReload(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
             UI.drawUI(g, -camera.x.toFloat(), -camera.y.toFloat())
+            for (i in gs.weaponSpawn) i.draw(g)
         }
     }
 

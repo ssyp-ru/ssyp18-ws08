@@ -57,7 +57,7 @@ class UserInterface(val gc : GameContainer, val gs : GameState, val nick : Strin
                     when {
                         (cells[i][j].type == layer.ROADS) -> g.color = Color.gray
                         (cells[i][j].type == layer.CRATES) -> g.color = Color.red
-                        (cells[i][j].type == layer.GRASS) -> g.color = Color.green
+                        (cells[i][j].type == layer.GRASS) -> g.color = Color(15, 70, 8)
                         (cells[i][j].type == layer.WATER) -> g.color = Color.blue
                         (cells[i][j].type == layer.HOUSES) -> g.color = Color.yellow
                     }
