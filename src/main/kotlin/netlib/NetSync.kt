@@ -55,7 +55,7 @@ class NetSync(gs: Serializable,
         consProperties.setProperty("key.deserializer", StringDeserializer::class.java.name)
         consProperties.setProperty("value.deserializer", ByteArrayDeserializer::class.java.name)
         consProperties.setProperty("enable.auto.commit", "true")
-        consProperties.setProperty("auto.commit", "1000")
+        consProperties.setProperty("auto.commit", "5000")
         consProperties.setProperty("group.id", "$nick-SYNC")
         cons = KafkaConsumer(consProperties)
 
@@ -63,14 +63,13 @@ class NetSync(gs: Serializable,
         prodProperties.setProperty("bootstrap.servers", ip)
         prodProperties.setProperty("key.serializer", StringSerializer::class.java.name)
         prodProperties.setProperty("value.serializer", ByteArraySerializer::class.java.name)
-        prodProperties.setProperty("retries", "5")
+        prodProperties.setProperty("retries", "3")
         prodProperties.setProperty("acks", "1")
-        //prodProperties.setProperty("buffer.memory", "1000")
+        prodProperties.setProperty("batch.size", "0")
         prod = KafkaProducer(prodProperties)
 
         cons.assign(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
         cons.seekToEnd(asList(TopicPartition(topicName, PartitionID.SYNC.ordinal)))
-        //gameState = gs
         gsarr = serialize(gs)
 
         println("(Network)Sync initiazized!")
@@ -85,19 +84,15 @@ class NetSync(gs: Serializable,
         println(if (isHost) "ama host now" else "ama bomzh now")
     }
 
-
-    /*fun setGameState(st: Serializable) {
-        gameState = st
-    }
-
-    fun getGameState(): Serializable {
-        return gameState
-    }*/
-
     override fun run() {
         prevSync = System.currentTimeMillis()
         while (true) {
             if (isHost) {
+                for(r in cons.poll(50)){
+                    if(r.key() == "host"){
+                        setHost(r.value().toString(Charset.defaultCharset()) == nick)
+                    }
+                }
                 gsarrLock.lock()
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "sync", gsarr))
                 gsarrLock.unlock()
@@ -105,42 +100,27 @@ class NetSync(gs: Serializable,
                 for(p in playersList){
                     playersString += "|$p"
                 }
-                //println(playersString)
                 prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "playersList",
                         playersString.toByteArray(Charset.defaultCharset())))
                 Thread.sleep(syncTime)
             } else {
                 val records = cons.poll(50)
                 for (r in records) {
-                    /*if (r.key() == "sync") {
-                        prevSync = System.currentTimeMillis()
-                        //println("recieve sync")
-                        //lock
-                        gameState = deserialize(r.value())
-                        //unlock
-                    }*/
                     when(r.key()){
                         "sync" -> {
                             prevSync = System.currentTimeMillis()
-                            //println("recieve sync")
-                            //lock
                             gameState = deserialize(r.value())
-                            //unlock
                         }
                         "host" -> {
-                            //println("azazazaz")
+                            //println("recieved")
+                            println(r.value().toString())
                             setHost(r.value().toString() == nick)
                             host = playersList.indexOf(r.value().toString())
-
-                            //prevSync = System.currentTimeMillis()
                         }
                         "playersList" -> {
-                            //println(r.value().toString(Charset.defaultCharset()))
                             val tmp = r.value().toString(Charset.defaultCharset()).split('|')
-                            println(tmp[0])
                             host = tmp[0].toInt()
-                            //playersList = ArrayList()
-                            for(i in 0..(playersList.size - 1))playersList[i] = tmp[i + 1]
+                            for(i in 0 until playersList.size) playersList[i] = tmp[i + 1]
                         }
                     }
                 }
@@ -148,7 +128,9 @@ class NetSync(gs: Serializable,
                     host = if(host < (playersList.size - 1)) (host + 1) else 0
                     println(host)
                     if(nick == playersList[host]){
-                        prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "host", nick.toByteArray()))
+                        //println("send")
+                        prod.send(ProducerRecord(topicName, PartitionID.SYNC.ordinal, "host",
+                                nick.toByteArray(Charset.defaultCharset())))
                         setHost(true)
                     }
                     prevSync = System.currentTimeMillis()

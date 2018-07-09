@@ -129,9 +129,9 @@ class Game(var gc: GameContainer, val gameName: String,
 
 
             val acts = net.getActions()
-            for (a in acts) {
-                val gamer = gs.players[a.sender]!!
-                if (gamer == null) continue
+
+            for(a in acts){
+                val gamer = gs.players[a.sender]?:continue
                 when (a.name) {
                 /**/
                     "move" -> gamer.velocity.add(Vector2f(a.params[0].toFloat(),

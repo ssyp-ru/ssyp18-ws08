@@ -18,7 +18,7 @@ class NetAdmin(ip: String) {
 
     fun createTopic(topicName: String, parts: Int) {
         println("(Adm)creating topic $topicName")
-        admin.createTopics(listOf(NewTopic(topicName, parts, 1)))
+        admin.createTopics(listOf(NewTopic(topicName, parts, 3)))
     }
 
     fun lisTopics(): Array<String> {
