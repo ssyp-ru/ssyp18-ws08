@@ -12,7 +12,7 @@ import kotlin.math.*
 
 class Player(var x: Float,
              var y: Float,
-             var maxHP:Int = 5,
+             var maxHP:Int = 100,
              val nick:String,
              var velocity: Vector2f = Vector2f(0f, 0f),
              var shot: Boolean = false,
@@ -24,12 +24,12 @@ class Player(var x: Float,
              var numRangedWeapon:Int = 0,
              var kills:Int = 0,
              var killStreak:Int = 0,
-             var deaths:Int = 0,
+             var deaths:Int = -1,
              val mapR: Int = 16): Serializable {
 
     var arrayMeeleeWeapon = ArrayList<Meelee>()
     var arrayRangedWeapon = ArrayList<RangedWeapon>()
-    var HP = maxHP
+    var HP = 0
 
     init{
         arrayMeeleeWeapon.add(Knife(x, y, R, mouseVec))

@@ -3,8 +3,6 @@ package Game
 import org.newdawn.slick.GameContainer
 import org.newdawn.slick.Graphics
 import org.newdawn.slick.geom.Rectangle
-import org.newdawn.slick.tiled.TiledMap
-import java.awt.MouseInfo
 
 
 class Camera() {
@@ -20,8 +18,12 @@ class Camera() {
     }
 
     fun translate(g: Graphics, hero: Player, gc: GameContainer) {
+        var deltaX = gc.input.mouseX - gc.width / 2
+        var deltaY = gc.input.mouseY - gc.height / 2
         x = (gc.width / 2) - hero.x.toInt() - radius
         y = (gc.height / 2) - hero.y.toInt() - radius
+        x -= deltaX/5
+        y -= deltaY/5
 
         g.translate(x.toFloat(), y.toFloat())
         viewPort.x = (-x).toFloat()
