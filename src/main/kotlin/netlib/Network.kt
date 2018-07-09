@@ -12,10 +12,11 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class Network(private val ip: String,
-              gameName: String,
+              private val gameName: String,
               private val isHost: Boolean,
               private val nick: String,
-              gs: Serializable) {
+              gs: Serializable,
+              ddefaultMap: String) {
     private val prod = createProducer(ip)
     private var lobby: NetLobby
     private var lobbyTopicName = ""
@@ -23,13 +24,16 @@ class Network(private val ip: String,
     private val players = ArrayList<NetPlayer>()
     private var gameStarted = false
     private val syncer: NetSync
-    private var onliner: NetOnline? = null
     private var playersLock = ReentrantLock()
     private val actionsLock = ReentrantLock()
+    var hostExited
+        get() = lobby.hostExited
+        set(b){}
 
     init {
         lobby = NetLobby(gameName, isHost, nick, ip, this, players, playersLock)
         lobby.setDaemon(true)
+        lobby.map = ddefaultMap
         lobby.start()
         lobbyTopicName = createLobbyTopicName(gameName)
         actionsParser = NetActionsParser(ip, players, nick, actionsLock)
@@ -40,14 +44,10 @@ class Network(private val ip: String,
 
     var gameState: Serializable
         get() {
-            //
             return syncer.gameState
-            //
         }
         set(gs: Serializable) {
-            //lock
             syncer.gameState = gs
-            //unlock
         }
 
     fun getActions(): ArrayList<NetAction> {
@@ -66,15 +66,15 @@ class Network(private val ip: String,
     fun startGame() {
         if (isHost) {
             prod.send(ProducerRecord(lobbyTopicName, PartitionID.LOBBY.ordinal, "state", "ready"))
+            //val toSend =
+            //prod.send(ProducerRecord(lobbyTopicName, PartitionID.LOBBY.ordinal, "ready", "ready"))
         }
         while (!gameStarted) {
             print("")
         }
+        syncer.setPlayers(players)
         actionsParser.start()
         syncer.start()
-        onliner = NetOnline(nick, ip, lobbyTopicName, getPlayersAsHashMap(), syncer)
-        onliner!!.setDaemon(true)
-        //onliner!!.start()
     }
 
     fun setGameStarted() {
@@ -96,20 +96,30 @@ class Network(private val ip: String,
     fun getPlayersAsHashMap(): HashMap<String, NetPlayer> {
         val toOut = HashMap<String, NetPlayer>()
         for (i in 0..(players.size - 1)) {
-            //players[i].position = i
             toOut[players[i].nick] = players[i].copy()
             toOut[players[i].nick]!!.position = i
         }
         return toOut
     }
 
-    /*companion object {
-        const val LOBBY = 0
-        const val SYNC = 1
-        const val ONLINE = 2
-    }*/
-
-
+    fun leaveLobby(){
+        if(!gameStarted){
+            lobby.leave()
+            prod.send(ProducerRecord(createLobbyTopicName(gameName),
+                    PartitionID.LOBBY.ordinal, "leave", nick)).get()
+        }
+    }
+    fun getMap(): String{
+        return lobby.map
+    }
+    fun setMap(m: String){
+        if(isHost) {
+            lobby.map = m
+            prod.send(ProducerRecord(createLobbyTopicName(gameName),
+                    PartitionID.LOBBY.ordinal, "map", m)).get()
+            //println("sent map name:${lobby.map}")
+        }
+    }
 }
 
 enum class PartitionID{
@@ -122,7 +132,7 @@ fun createConsumer(ip: String, gid: String): KafkaConsumer<String, String> {
     consProperties.setProperty("key.deserializer", StringDeserializer::class.java.name)
     consProperties.setProperty("value.deserializer", StringDeserializer::class.java.name)
     consProperties.setProperty("enable.auto.commit", "true")
-    consProperties.setProperty("auto.commit", "50")
+    consProperties.setProperty("auto.commit", "5000")
     consProperties.setProperty("group.id", gid)
     return KafkaConsumer(consProperties)
 }
@@ -132,17 +142,12 @@ fun createProducer(ip: String): KafkaProducer<String, String> {
     prodProperties.setProperty("bootstrap.servers", ip)
     prodProperties.setProperty("key.serializer", StringSerializer::class.java.name)
     prodProperties.setProperty("value.serializer", StringSerializer::class.java.name)
-    prodProperties.setProperty("retries", "5")
+    prodProperties.setProperty("retries", "3")
     prodProperties.setProperty("acks", "1")
-    //prodProperties.setProperty("buffer.memory", "1000")
+    prodProperties.setProperty("batch.size", "0")
     return KafkaProducer(prodProperties)
 }
 
 fun createLobbyTopicName(gameName: String): String {
     return "-LOBBY-$gameName"
 }
-/*enum class GamePartitions(val p: Int){
-    LOBBY (0),
-    SYNC(1),
-    ONLINE(2)
-}*/
