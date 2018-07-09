@@ -13,6 +13,9 @@ fun main(args: Array<String>) {
 //        appgc.setDisplayMode(1366, 768, true)
         appgc.setDisplayMode(640, 480, false)
         //appgc.setDisplayMode(1280,720,false)
+//        appgc.setDisplayMode(1920, 1080, true)
+//        appgc.setDisplayMode(640, 480, false)
+
         appgc.setVSync(true)
         appgc.setShowFPS(false)
         appgc.start()

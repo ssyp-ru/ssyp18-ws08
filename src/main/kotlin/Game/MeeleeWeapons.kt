@@ -1,6 +1,7 @@
 package Game
 
 import org.newdawn.slick.Color
+import org.newdawn.slick.Image
 import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import kotlin.math.*
@@ -17,19 +18,6 @@ abstract class Meelee(val attackRange:Float,
 
     override fun draw(g:org.newdawn.slick.Graphics, arrBullets:ArrayList<Bullets>) {
         //println("drawing meele")
-        x = playerX - playerR * attackRange / 2
-        y = playerY - playerR * attackRange / 2
-        r = playerR * (attackRange + 2)
-        g.color = Color.transparent
-        val temp = toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x)
-        val tempAngle:Float
-        if (mouseVec.x >= 0) {
-            tempAngle = attackAngle * cooldownCounter / cooldown / 2
-            g.fillArc(x, y, r, r, -tempAngle + temp, tempAngle + temp)
-        } else {
-            tempAngle = toDegree(PI) - attackAngle * cooldownCounter / cooldown / 2
-            g.fillArc(x, y, r, r,tempAngle + temp,-tempAngle + temp)
-        }
     }
 
     /*fun attack(arrPlayers:ArrayList<Player>, k:Player){
@@ -71,8 +59,9 @@ abstract class Meelee(val attackRange:Float,
 }
 
 class Knife(override var playerX: Float, override var playerY: Float, override val playerR: Float,
-            override var mouseVec:Vector2f): Meelee(1F, 90F, 30F, 3, 0) {}
+            override var mouseVec:Vector2f): Meelee(3F, 90F, 30F, 40, 0)
 class Rapier(override var playerX: Float, override var playerY: Float, override val playerR: Float,
              override var mouseVec:Vector2f): Meelee(5F, 15F, 60F, 4, 1) {}
-class DeathPuls(override var playerX: Float, override var playerY: Float, override val playerR: Float,
+class DeathPulse(override var playerX: Float, override var playerY: Float, override val playerR: Float,
                 override var mouseVec:Vector2f) : Meelee(5000F, 0.1F, 180F, 8, 2) {}
+
