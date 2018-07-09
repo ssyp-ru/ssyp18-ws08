@@ -101,7 +101,7 @@ class Game(var gc: GameContainer, val gameName: String,
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for (p in plrs) {
-                gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f),
+                gs.players[p.key] = Player(1800f, 1800f, 100, p.key, mouseVec = Vector2f(1f, 1f),
                         numMeeleeWeapon = 0, numRangedWeapon = 0)
             }
             playersCreated = true
@@ -165,9 +165,10 @@ class Game(var gc: GameContainer, val gameName: String,
 
             for (weapon in gs.weaponSpawn){
                 if (weapon.duration == 60 * 60F) {
-                    weapon.loot = when (Random().nextInt(4)){
-                        0 -> Pistol (0F, 0F, 0F, Vector2f(1f,1f))
-                        1 -> Awp (0F, 0F, 0F, Vector2f(1f,1f))
+                    weapon.loot = when (Random().nextInt(99)){
+                        in 0..29 -> Pistol (0F, 0F, 0F, Vector2f(1f,1f))
+                        in 30..44 -> Awp (0F, 0F, 0F, Vector2f(1f,1f))
+                        in 44..49 -> MiniGun (0F, 0F, 0F, Vector2f(1f,1f))
                         else -> Rapier (0F, 0F, 0F, Vector2f(1f,1f))
                     }
                 }

@@ -15,8 +15,8 @@ enum class PlayerState {
 
 class Player(var x: Float,
              var y: Float,
-             var maxHP: Int = 5,
-             val nick: String,
+             var maxHP:Int = 100,
+             val nick:String,
              var velocity: Vector2f = Vector2f(0f, 0f),
              var mouseVec: Vector2f,
              val R: Float = 16F,
