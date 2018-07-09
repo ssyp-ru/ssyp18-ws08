@@ -7,11 +7,17 @@ import org.newdawn.slick.Image
 import java.util.HashMap
 import kotlin.system.measureTimeMillis
 
-class UserInterface(val gc : GameContainer, val gs : GameState, val nick : String, val cells: Array<Array<Cell>>) {
+class UserInterface(val gc : GameContainer,
+                    var gs : GameState ,
+                    val nick : String,
+                    val cells: Array<Array<Cell>>,
+                    val weaponIcons : Array<Image>) {
     var isMinimapCreated = false
     val mapSize = 100
     var minimapImage = Image(mapSize, mapSize)
     val tileSize = 32
+    val sizeInventoryCell = 66f
+
 
     class Minimap(val g: Graphics, var gc: GameContainer, val cells: Array<Array<Cell>>,
                   var minimapImage : Image) {
@@ -19,6 +25,8 @@ class UserInterface(val gc : GameContainer, val gs : GameState, val nick : Strin
         val tileSize = 32
         val minimapSize = gc.height / 4f
         val mapSize = 100
+
+
 
         fun draw(x: Float, y: Float, gs: GameState) {
             val minimapScale = 2f
@@ -35,16 +43,38 @@ class UserInterface(val gc : GameContainer, val gs : GameState, val nick : Strin
         }
     }
 
+    fun syncState(state : GameState){
+        this.gs = state
+    }
+
+    fun drawInventory(g : Graphics, x : Float, y : Float){
+        val cellShift = 76f
+        var displacement = 0f
+        g.color = Color(1f, 0f, 1f)
+        for (weapon in gs.players[nick]!!.arrayRangedWeapon){
+            if (weapon == null) continue
+            g.drawRect(x + displacement, y, sizeInventoryCell,sizeInventoryCell)
+            weaponIcons[weapon.ID].draw(x + displacement + 1, y + 1, 64f, 64f)
+            displacement += cellShift
+        }
+        for (weapon in gs.players[nick]!!.arrayMeeleeWeapon){
+            if (weapon == null) continue
+            g.drawRect(x + displacement, y, sizeInventoryCell,sizeInventoryCell)
+            weaponIcons[weapon.ID].draw(x + displacement + 1, y + 1, sizeInventoryCell - 2, sizeInventoryCell -2)
+            displacement += cellShift
+        }
+    }
+
 
     fun drawScore(g : Graphics, x : Float, y : Float){
         val stringShift = 20f
         var displacement = stringShift
         g.color = Color.lightGray
         g.drawString("NICK : K / D", x, y)
-        for (player in gs.players){
-            if (player.value.nick == nick)g.color = Color.yellow
+        for (currPlayer in gs.players){
+            if (currPlayer.value.nick == nick)g.color = Color.yellow
             else g.color = Color.white
-            g.drawString("${player.value.nick} : ${player.value.kills} / ${player.value.deaths}", x,
+            g.drawString("${currPlayer.value.nick} : ${currPlayer.value.kills} / ${currPlayer.value.deaths}", x,
                     y + displacement)
             displacement += stringShift
         }
@@ -69,10 +99,11 @@ class UserInterface(val gc : GameContainer, val gs : GameState, val nick : Strin
             g.copyArea(minimapImage, 0, 0)
         }
         val minimap = Minimap(g, gc, cells, minimapImage)
-        if(!isMinimapCreated)this.isMinimapCreated = true
         minimap.draw(x + gc.width - minimap.minimapSize, y, gs) //
         val tableSHift = 5
         drawScore(g,x + tableSHift, y)
+        var inventoryShift = 5
+        drawInventory(g, x + inventoryShift,y + gc.height - sizeInventoryCell - inventoryShift)
     }
 
 }

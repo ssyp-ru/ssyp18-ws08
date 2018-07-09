@@ -46,11 +46,15 @@ class Game(var gc: GameContainer, val gameName: String,
     private var minimapSize = 0
     var isMinimapRendered = false
     var exited =false
-    val net: Network
-
+    val net : Network
     private var playersCreated = false
     private var isGameOver = false
     private lateinit var UI : UserInterface
+    val weaponIcons = arrayOf(
+            Image("res/animations/knife.png"), Image("res/animations/rapier.png"),
+            Image("res/animations/rapier.png"), Image("res/animations/pistol.png"),
+            Image("res/animations/minigun.png"), Image("res/animations/AWP.png")
+    )
 
     init {
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
@@ -82,7 +86,7 @@ class Game(var gc: GameContainer, val gameName: String,
             }
         }
         camera = Camera(map, mapWidth, mapHeight)
-        UI = UserInterface(gc, gs, nick, cells)
+        UI = UserInterface(gc, gs, nick, cells, weaponIcons)
     }
 
 
@@ -159,6 +163,7 @@ class Game(var gc: GameContainer, val gameName: String,
             }
             net.gameState = gs
         }
+        UI.syncState(gs)
     }
 
     private fun myControls(gc: GameContainer) {

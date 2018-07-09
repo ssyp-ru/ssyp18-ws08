@@ -1,6 +1,7 @@
 package Game
 
 import org.newdawn.slick.Color
+import org.newdawn.slick.Image
 import org.newdawn.slick.geom.Vector2f
 import java.util.*
 
@@ -52,13 +53,13 @@ abstract class RangedWeapon(val rapidiy:Float,
 }
 
 class Pistol(override var playerX:Float, override var playerY:Float, override val playerR:Float,
-             override var mouseVec:Vector2f):RangedWeapon(20F, 3, 300F, 101, 0.3F,
-        7, 5, 3F){}
+             override var mouseVec:Vector2f):RangedWeapon(20F, 3, 300F, 3, 0.3F,
+        7, 5, 3F)
 
 class MiniGun(override var playerX:Float, override var playerY:Float, override val playerR:Float,
-              override var mouseVec:Vector2f):RangedWeapon(3F, 1, 600F, 102, 0.2F,
-        200, 45, 5F){}
+              override var mouseVec:Vector2f):RangedWeapon(3F, 1, 600F, 4, 0.2F,
+        200, 45, 5F)
 
 class Awp(override var playerX:Float, override var playerY:Float, override val playerR:Float,
-              override var mouseVec:Vector2f):RangedWeapon(60F, 5, 240F, 103, 1F,
-        5, 1, 10F){}
+              override var mouseVec:Vector2f):RangedWeapon(60F, 5, 240F, 5, 1F,
+        5, 1, 10F)
