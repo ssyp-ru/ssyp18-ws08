@@ -2,42 +2,36 @@ package Game
 
 //import netlib.Players
 //import sun.nio.ch.Net
+
+//import sun.nio.ch.Net
+import GUI.State
 import GUILobby.Lobby
 import netlib.Network
 import org.newdawn.slick.*
 import org.newdawn.slick.geom.Vector2f
-import org.newdawn.slick.imageout.ImageIOWriter
 import org.newdawn.slick.tiled.TiledMap
 import java.awt.Font
-import kotlin.math.PI
-import kotlin.math.pow
-import kotlin.math.sqrt
-
-import java.io.FileOutputStream
-import java.io.FileWriter
-import java.io.OutputStream
-//import sun.nio.ch.Net
 import java.util.*
 import java.util.Arrays.asList
 import kotlin.collections.ArrayList
+import kotlin.math.PI
 import kotlin.math.pow
 import kotlin.math.sqrt
-import kotlin.system.exitProcess
 
 class Game(var gc: GameContainer, val gameName: String,
            var nick: String, var isHost: Boolean) {
 
     var gs = GameState()
-
+    var timer =10
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
-    var cells = Array<Array<Cell>>(100) {Array<Cell>(100, {i -> Cell(0, 0, layer.GRASS)})}
+    var cells = Array<Array<Cell>>(100) { Array<Cell>(100, { i -> Cell(0, 0, layer.GRASS) }) }
     //private lateinit var minimap: Minimap
     private lateinit var minimapImage: Image
     private var tileID: Int = 0
     private lateinit var value: String
-    lateinit var lob:Lobby
+    lateinit var lob: Lobby
     private var mapHeight: Int = 0
     private var mapWidth: Int = 0
     private var tileHeight: Int = 0
@@ -45,16 +39,17 @@ class Game(var gc: GameContainer, val gameName: String,
     private lateinit var camera: Camera
     private var minimapSize = 0
     var isMinimapRendered = false
-    var exited =false
+    var exited = false
+    var extViewed = false
+    var exit = Exit(gc)
     val net: Network
-
     private var playersCreated = false
     private var isGameOver = false
-    private lateinit var UI : UserInterface
+    private lateinit var UI: UserInterface
 
     init {
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
-        lob= Lobby(gc,isHost,net,gameName)
+        lob = Lobby(gc, isHost, net, gameName)
         playersCreated = false
         gc.setVSync(true)
         gc.alwaysRender = true
@@ -68,7 +63,7 @@ class Game(var gc: GameContainer, val gameName: String,
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
                 cells[i][j] = Cell(i * tileWidth, j * tileHeight, layer.GRASS)
-                when{
+                when {
                     (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
                             layer.ROADS)
                     (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
@@ -86,13 +81,12 @@ class Game(var gc: GameContainer, val gameName: String,
     }
 
 
-
-
     fun update() {
-        if (!net.getGameStarted() ) {
+        if (!net.getGameStarted()) {
             lob.lobbyUpdate()
-            exited=lob.exited
+            exited = lob.exited
         }
+        if(timer<10)timer+=1
         if (net.getGameStarted() and (gs.players.isEmpty())) {
             val plrs = net.getPlayersAsHashMap()
             for (p in plrs) {
@@ -104,23 +98,34 @@ class Game(var gc: GameContainer, val gameName: String,
                 println("${p.key} - ${p.value}")
             }
         } else if (net.getGameStarted() and playersCreated) {
+            if (gc.input.isKeyDown(Input.KEY_ESCAPE)&&timer==10) {
+                timer=0
+                extViewed = !extViewed
+            }
+
             //SYNC
             val tmp = net.gameState
             if (tmp is GameState) gs = tmp
+            if (extViewed && exit.state==State.USED)
+            {
+                exited = true
+            }
+
 
             val acts = net.getActions()
-            for(a in acts){
+            for (a in acts) {
                 val gamer = gs.players[a.sender]!!
-                if(gamer == null)continue
+                if (gamer == null) continue
                 when (a.name) {
-                    /**/
+                /**/
                     "move" -> gamer.velocity.add(Vector2f(a.params[0].toFloat(),
                             a.params[1].toFloat()))
                     "shot" -> gamer.shot = true
                     "punch" -> gamer.punch = true
                     "direction" -> gamer.mouseVec = Vector2f(a.params[0].toFloat(),
                             a.params[1].toFloat())
-                    "ressurection" -> {gamer.x = a.params[0].toFloat()
+                    "ressurection" -> {
+                        gamer.x = a.params[0].toFloat()
                         gamer.y = a.params[1].toFloat()
                         gamer.HP = gamer.maxHP
                         ++gamer.deaths
@@ -131,11 +136,11 @@ class Game(var gc: GameContainer, val gameName: String,
                     }
                     "numMeeleeWeapon" -> gamer.numMeeleeWeapon = a.params[0].toInt()
                     "numRangedWeapon" -> gamer.numRangedWeapon = a.params[0].toInt()
-                    "getMeelee" -> when (a.params[0]){
+                    "getMeelee" -> when (a.params[0]) {
                         "rapier" -> gamer.arrayMeeleeWeapon.add(Rapier(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
                         "DP" -> gamer.arrayMeeleeWeapon.add(DeathPuls(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
                     }
-                    "getRanged" -> when (a.params[0]){
+                    "getRanged" -> when (a.params[0]) {
                         "pistol" -> gamer.arrayRangedWeapon.add(Pistol(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
                         "MG" -> gamer.arrayRangedWeapon.add(MiniGun(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
                         "awp" -> gamer.arrayRangedWeapon.add(Awp(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
@@ -153,9 +158,9 @@ class Game(var gc: GameContainer, val gameName: String,
                             meeleeGun.cooldown) 1 else 0
                 }
                 if (i.value.numRangedWeapon <= i.value.arrayRangedWeapon.size - 1) {
-                rangedGun = i.value.arrayRangedWeapon[i.value.numRangedWeapon]
-                rangedGun.cooldownCounter += if (rangedGun.cooldownCounter <
-                        rangedGun.cooldown) 1 else 0
+                    rangedGun = i.value.arrayRangedWeapon[i.value.numRangedWeapon]
+                    rangedGun.cooldownCounter += if (rangedGun.cooldownCounter <
+                            rangedGun.cooldown) 1 else 0
                 }
             }
             net.gameState = gs
@@ -177,6 +182,7 @@ class Game(var gc: GameContainer, val gameName: String,
         if (input.isKeyDown(Input.KEY_S)) {
             gm.velocity.y += 1f
         }
+
         gm.velocity = gm.velocity.normalise()
         net.doAction("move", asList("${gm.velocity.x}", "${gm.velocity.y}"))
 
@@ -227,7 +233,7 @@ class Game(var gc: GameContainer, val gameName: String,
                 if (distance(i.value.x + i.value.R, i.value.y + i.value.R, j.x + (j.r), j.y + (j.r))
                         <= i.value.R + (j.r)) {
                     i.value.HP -= j.damage
-                    if (i.value.HP <= 0){
+                    if (i.value.HP <= 0) {
                         j.owner.kills += if (j.owner.nick != i.value.nick) 1 else -1
                         j.owner.killStreak += if (j.owner.nick != i.value.nick) 1 else 0
                     }
@@ -254,7 +260,7 @@ class Game(var gc: GameContainer, val gameName: String,
         checkHit()
         if (gs.players[nick] == null) return
         val gmr = gs.players[nick]!!
-        when{
+        when {
             (gmr.killStreak in 2..3) && (gmr.arrayMeeleeWeapon.size == 1) -> {
                 gmr.arrayMeeleeWeapon.add(Rapier(gmr.x, gmr.y, gmr.R, gmr.mouseVec))
                 net.doAction("getMeelee", asList("rapier"))
@@ -289,7 +295,6 @@ class Game(var gc: GameContainer, val gameName: String,
     fun render(g: Graphics) {
         val HPbarDislocationHeight = 52.5f
         val HPbarDislocationWidth = 27.5f
-
         if (!net.getGameStarted()) {
             lob.lobbyRender(g)
         } else if (playersCreated) {
@@ -311,13 +316,21 @@ class Game(var gc: GameContainer, val gameName: String,
                     i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
                 }
             }
+
             if (gs.players[nick] == null) return
             gs.players[nick]!!.drawHP(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight)
             gs.players[nick]!!.drawReload(g, gs.players[nick]!!.x - HPbarDislocationWidth,
                     gs.players[nick]!!.y - HPbarDislocationHeight + 7.5f)
             UI.drawUI(g, -camera.x.toFloat(), -camera.y.toFloat())
+            if (extViewed) {
+                exit.xButton = -camera.x.toFloat()
+                exit.yButton = -camera.y.toFloat()
+                exit.draw(gc, -camera.x + gc.input.mouseX.toFloat(), -camera.y + gc.input.mouseY.toFloat())
+            }
+            if(exited)g.background= Color.black
         }
+
     }
 
     fun leaveLobby() {
@@ -328,19 +341,19 @@ class Game(var gc: GameContainer, val gameName: String,
 
 //Какого плакплак это было в мэйне!!!11???????777
 
-        fun inside(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
-            return when {
-                y1 in x1..x2 -> true
-                y2 in x1..x2 -> true
-                x1 in y1..y2 -> true
-                else -> false
-            }
-        }
+fun inside(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
+    return when {
+        y1 in x1..x2 -> true
+        y2 in x1..x2 -> true
+        x1 in y1..y2 -> true
+        else -> false
+    }
+}
 
-        fun toDegree(someDouble: Double): Float {
-            return (someDouble / PI * 180).toFloat()
-        }
+fun toDegree(someDouble: Double): Float {
+    return (someDouble / PI * 180).toFloat()
+}
 
-        fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
-            return(sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
-        }
+fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
+    return (sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
+}

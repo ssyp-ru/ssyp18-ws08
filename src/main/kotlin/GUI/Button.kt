@@ -5,8 +5,8 @@ import org.newdawn.slick.Graphics
 import org.newdawn.slick.Image
 import org.newdawn.slick.Input
 
-abstract class Button(gc: GameContainer, val imageCommon : Image ,val imageLighted : Image, val imageClicked : Image,
-                      val sizeX : Float, val sizeY : Float, val xButton : Float, val yButton : Float ) {
+abstract class Button(gc: GameContainer, var imageCommon : Image ,var imageLighted : Image, var imageClicked : Image,
+                      var sizeX : Float, var sizeY : Float, var xButton : Float, var yButton : Float ) {
     fun isButtonLighted(gc: GameContainer, x: Float, y: Float): Boolean{
         if (x >= xButton && x <= xButton + sizeX
                 && y >= yButton && y <= yButton + sizeY) {
@@ -15,7 +15,7 @@ abstract class Button(gc: GameContainer, val imageCommon : Image ,val imageLight
         return false
     }
     fun draw(gc: GameContainer, x: Float, y: Float){
-        val flag = gc.input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)
+        var flag = gc.input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)
         when (state) {
             State.COMMON -> imageCommon.draw(xButton, yButton, sizeX, sizeY)
             State.LIGHTED -> imageLighted.draw(xButton, yButton, sizeX, sizeY)

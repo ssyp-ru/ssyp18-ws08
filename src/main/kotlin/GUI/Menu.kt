@@ -17,7 +17,7 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     lateinit var text1: TextField
     lateinit var text2: TextField
     lateinit var maingame: Game
-
+    var exited=false
     var gameStarted = false
     @Throws(SlickException::class)
     override fun init(gc: GameContainer) {
@@ -38,18 +38,21 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     @Throws(SlickException::class)
     override fun update(gc: GameContainer, i: Int) {
-        var nick: String
-        var lobby: String
+        val nick: String
+        val lobby: String
+
         if (sjg.state == State.USED || sng.state == State.USED) {
             nick = text1.text
             lobby = text2.text
             maingame = Game(gc, lobby, nick, sng.state == State.USED)
             sng.state = State.COMMON
             sjg.state = State.COMMON
+            exited=false
             gameStarted = true
         }
         if (gameStarted) {
             maingame.update()
+            exited=maingame.exited
             gameStarted=!maingame.exited
         }
     }
@@ -58,6 +61,10 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
     override fun render(gc: GameContainer, g: Graphics) {
         val x = gc.input.mouseX.toFloat() //координаты мышки`
         val y = gc.input.mouseY.toFloat() //координаты мышки
+        if (exited){
+            g.background=Color.black
+            g.color = Color.white
+        }
         if (!gameStarted) {
             if ((starter.state != State.USED && rules.state != State.USED) || back.state == State.USED) {
                 back.state = State.COMMON
