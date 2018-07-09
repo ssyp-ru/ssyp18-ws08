@@ -157,6 +157,7 @@ class Game(var gc: GameContainer, val gameName: String,
                         gamer.arrayRangedWeapon = ArrayList<RangedWeapon>()
                         gamer.arrayMeeleeWeapon = ArrayList<Meelee>()
                         gamer.arrayMeeleeWeapon.add(Knife(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
+                        gamer.isDead = false
                     }
                     "numMeeleeWeapon" -> gamer.numMeeleeWeapon = a.params[0].toInt()
                     "numRangedWeapon" -> gamer.numRangedWeapon = a.params[0].toInt()
@@ -200,13 +201,22 @@ class Game(var gc: GameContainer, val gameName: String,
                 ++weapon.duration
             }
 
+            for(p in gs.players){
+                if(p.value.HP <= 0){
+                    p.value.isDead = true
+                    //телепортируем мёртвых за карту
+                    p.value.x = 9999f
+                    p.value.y = 9999f
+                }
+            }
             net.gameState = gs
         }
         UI.syncState(gs)
     }
 
     private fun myControls(gc: GameContainer) {
-        val gm = gs.players[nick]!!
+        val gm = gs.players[nick]?:return
+        if(gm.isDead)return
         val input = gc.input
         if (input.isKeyDown(Input.KEY_D)) {
             gm.velocity.x += 1f
@@ -281,6 +291,7 @@ class Game(var gc: GameContainer, val gameName: String,
             gs.bullets.remove(b)
         }
         for (i in gs.players) {
+            if(i.value.isDead)continue
             for (j in gs.bullets) {
                 if (distance(i.value.x + i.value.R, i.value.y + i.value.R, j.x + (j.r), j.y + (j.r))
                         <= i.value.R + (j.r)) {

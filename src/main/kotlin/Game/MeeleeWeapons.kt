@@ -59,9 +59,9 @@ abstract class Meelee(val attackRange:Float,
 }
 
 class Knife(override var playerX: Float, override var playerY: Float, override val playerR: Float,
-            override var mouseVec:Vector2f): Meelee(3F, 90F, 30F, 20, 0)
+            override var mouseVec:Vector2f): Meelee(3F, 90F, 5F, 5, 0)
 class Rapier(override var playerX: Float, override var playerY: Float, override val playerR: Float,
-             override var mouseVec:Vector2f): Meelee(8F, 15F, 60F, 40, 1) {}
+             override var mouseVec:Vector2f): Meelee(9F, 15F, 5F, 8, 1) {}
 class DeathPulse(override var playerX: Float, override var playerY: Float, override val playerR: Float,
                 override var mouseVec:Vector2f) : Meelee(5000F, 0.1F, 180F, 8, 2) {}
 

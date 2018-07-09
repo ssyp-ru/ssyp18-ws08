@@ -34,6 +34,9 @@ class Player(var x: Float,
     var shot = false
     var punch = false
     var playerState = PlayerState.CHILLMELEE
+    //var kickTimer: Long = 60000
+    var isDead = false
+    //var kicked = false
 
     init {
         arrayMeeleeWeapon.add(Knife(x, y, R, mouseVec))
@@ -68,6 +71,7 @@ class Player(var x: Float,
         }
 
     fun shot() {
+        if(isDead)return
         if(arrayRangedWeapon.size == 0)return
         if (arrayRangedWeapon.size - 1 >= numRangedWeapon) {
             if (PlayerState.SHOOT != playerState && arrayRangedWeapon[numRangedWeapon].attackReady()) {
@@ -79,12 +83,14 @@ class Player(var x: Float,
     }
 
     fun punch() {
+        if(isDead)return
         punch = true
         playerState = PlayerState.MELEE
         PlayerAnimations.getAnimation("meelee", meeleeIdReturn, mouseVec).start()
     }
 
     fun draw(g: org.newdawn.slick.Graphics) {
+        if(isDead)return
         if (playerState == PlayerState.CHILLMELEE) {
             val id = meeleeIdReturn
             PlayerAnimations.getAnimation("meelee", id, mouseVec).getImage(0).draw(
@@ -113,6 +119,7 @@ class Player(var x: Float,
 
 
     fun controlPlayer(arrayPlayers:HashMap<String, Player>, i:Player, arrBullets:ArrayList<Bullets>){
+        if(isDead)return
         val tempForSpeed = speed
         val movement = Vector2f(0F, 0F)
         movement.x += velocity.x
@@ -140,6 +147,7 @@ class Player(var x: Float,
 
 
     fun hit(arrPLayers: ArrayList<Player>, i: Int, cells: Array<Array<Cell>>, drop:ArrayList<WeaponMap>) {
+        if(isDead)return
         for (n in 0..(cells.size - 1)) {
             for (m in 0..(cells.size - 1)) {
                 if ((cells[n][m].type == layer.CRATES) || (cells[n][m].type == layer.WATER) ||
@@ -202,6 +210,7 @@ class Player(var x: Float,
     }
 
     fun drawReload(g: Graphics, x: Float, y: Float) {
+        if(isDead)return
         if (arrayRangedWeapon.size - 1 >= numRangedWeapon) {
             val maxHP = 5
             val widthReloadBar: Float = 100f
@@ -217,6 +226,7 @@ class Player(var x: Float,
     }
 
     fun drawHP(g: Graphics, x: Float, y: Float) {
+        if(isDead)return
         val widthBar: Float = 100f
         val heightBar: Float = 20f
         g.color = Color(0f, 0f, 0f)
