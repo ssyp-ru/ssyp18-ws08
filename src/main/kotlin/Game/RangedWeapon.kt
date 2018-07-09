@@ -64,5 +64,5 @@ class MiniGun(override var playerX:Float, override var playerY:Float, override v
         200, 45, 5F)
 
 class Awp(override var playerX:Float, override var playerY:Float, override val playerR:Float,
-              override var mouseVec:Vector2f):RangedWeapon(60F, 100, 120F, 5, 1F,
+              override var mouseVec:Vector2f):RangedWeapon(60F, 45, 120F, 5, 1F,
         5, 1, 10F)
