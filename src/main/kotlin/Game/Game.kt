@@ -115,8 +115,8 @@ class Game(var gc: GameContainer, val gameName: String,
                     /**/
                     "move" -> gamer.velocity.add(Vector2f(a.params[0].toFloat(),
                             a.params[1].toFloat()))
-                    "shot" -> gamer.shot = true
-                    "punch" -> gamer.punch = true
+                    "shot" -> gamer.shot()
+                    "punch" -> gamer.punch()
                     "direction" -> gamer.mouseVec = Vector2f(a.params[0].toFloat(),
                             a.params[1].toFloat())
                     "ressurection" -> {gamer.x = a.params[0].toFloat()
@@ -132,7 +132,7 @@ class Game(var gc: GameContainer, val gameName: String,
                     "numRangedWeapon" -> gamer.numRangedWeapon = a.params[0].toInt()
                     "getMeelee" -> when (a.params[0]){
                         "rapier" -> gamer.arrayMeeleeWeapon.add(Rapier(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
-                        "DP" -> gamer.arrayMeeleeWeapon.add(DeathPuls(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
+                        "DP" -> gamer.arrayMeeleeWeapon.add(DeathPulse(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
                     }
                     "getRanged" -> when (a.params[0]){
                         "pistol" -> gamer.arrayRangedWeapon.add(Pistol(gamer.x, gamer.y, gamer.R, gamer.mouseVec))
@@ -181,12 +181,13 @@ class Game(var gc: GameContainer, val gameName: String,
 
         when {
             input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) -> {
+
+                gm.shot()
                 net.doAction("shot", asList(""))
-                gm.shot = true
             }
             input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) -> {
+                gm.punch()
                 net.doAction("punch", asList(""))
-                gm.punch = true
             }
             input.isKeyPressed(Input.KEY_1) -> {
                 net.doAction("numRangedWeapon", asList("0"))
@@ -298,16 +299,17 @@ class Game(var gc: GameContainer, val gameName: String,
             g.font = comic
             g.color = color
             g.drawString("SSYP 20!8", 10f, 10f)
-            for (i in gs.players) {
-                if (i.value.numMeeleeWeapon <= i.value.arrayMeeleeWeapon.size - 1) {
-                    i.value.arrayMeeleeWeapon[i.value.numMeeleeWeapon].draw(g, gs.bullets)
+            for (player in gs.players) {
+                if (player.value.numMeeleeWeapon <= player.value.arrayMeeleeWeapon.size - 1) {
+                    player.value.arrayMeeleeWeapon[player.value.numMeeleeWeapon].draw(g, gs.bullets)
                 }
-                if (i.value.numRangedWeapon <= i.value.arrayRangedWeapon.size - 1) {
-                    i.value.arrayRangedWeapon[i.value.numRangedWeapon].draw(g, gs.bullets)
+                if (player.value.numRangedWeapon <= player.value.arrayRangedWeapon.size - 1) {
+                    player.value.arrayRangedWeapon[player.value.numRangedWeapon].draw(g, gs.bullets)
                 }
-                i.value.draw(g)
-                if (i.key != nick) {
-                    i.value.drawHP(g, i.value.x - HPbarDislocationWidth, i.value.y - HPbarDislocationHeight)
+                player.value.draw(g)
+                if (player.key != nick) {
+                    player.value.drawHP(g, player.value.x - HPbarDislocationWidth,
+                            player.value.y - HPbarDislocationHeight)
                 }
             }
             if (gs.players[nick] == null) return
@@ -324,22 +326,19 @@ class Game(var gc: GameContainer, val gameName: String,
     }
 }
 
+fun inside(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
+    return when {
+        y1 in x1..x2 -> true
+        y2 in x1..x2 -> true
+        x1 in y1..y2 -> true
+        else -> false
+    }
+}
 
-//Какого плакплак это было в мэйне!!!11???????777
+fun toDegree(someDouble: Double): Float {
+    return (someDouble / PI * 180).toFloat()
+}
 
-        fun inside(x1: Float, x2: Float, y1: Float, y2: Float): Boolean {
-            return when {
-                y1 in x1..x2 -> true
-                y2 in x1..x2 -> true
-                x1 in y1..y2 -> true
-                else -> false
-            }
-        }
-
-        fun toDegree(someDouble: Double): Float {
-            return (someDouble / PI * 180).toFloat()
-        }
-
-        fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
-            return(sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
-        }
+fun distance(x1:Float, y1:Float, x2:Float, y2:Float):Float{
+    return(sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2)))
+}

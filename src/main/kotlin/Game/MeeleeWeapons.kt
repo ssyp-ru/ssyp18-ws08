@@ -20,7 +20,8 @@ abstract class Meelee(val attackRange:Float,
         x = playerX - playerR * attackRange / 2
         y = playerY - playerR * attackRange / 2
         r = playerR * (attackRange + 2)
-        g.color = Color.transparent
+        g.color = if(cooldown == cooldownCounter) Color.cyan else Color.red
+
         val temp = toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x)
         val tempAngle:Float
         if (mouseVec.x >= 0) {
@@ -74,5 +75,5 @@ class Knife(override var playerX: Float, override var playerY: Float, override v
             override var mouseVec:Vector2f): Meelee(1F, 90F, 30F, 3, 0) {}
 class Rapier(override var playerX: Float, override var playerY: Float, override val playerR: Float,
              override var mouseVec:Vector2f): Meelee(5F, 15F, 60F, 4, 1) {}
-class DeathPuls(override var playerX: Float, override var playerY: Float, override val playerR: Float,
+class DeathPulse(override var playerX: Float, override var playerY: Float, override val playerR: Float,
                 override var mouseVec:Vector2f) : Meelee(5000F, 0.1F, 180F, 8, 2) {}

@@ -16,6 +16,9 @@ abstract class RangedWeapon(val rapidiy:Float,
 
 //    fun drow(g:org.newdawn.slick.Graphics){
 //    } //this is bullets
+    fun attackReady():Boolean{
+        return cooldownCounter == cooldown
+    }
 
     var ammoCounter = ammo
     override var cooldownCounter = 0F
@@ -30,7 +33,7 @@ abstract class RangedWeapon(val rapidiy:Float,
 
     override fun attack(arrPlayers:HashMap<String, Player>, k:Player, arrBullets:ArrayList<Bullets>) {
 
-        if (cooldownCounter == cooldown) {
+        if (attackReady()) {
             when (ammoCounter){
                 in 1..ammo -> {
                     val direct = mouseVec.normalise()
