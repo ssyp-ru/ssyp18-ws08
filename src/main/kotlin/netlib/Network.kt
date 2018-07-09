@@ -15,7 +15,8 @@ class Network(private val ip: String,
               private val gameName: String,
               private val isHost: Boolean,
               private val nick: String,
-              gs: Serializable) {
+              gs: Serializable,
+              ddefaultMap: String) {
     private val prod = createProducer(ip)
     private var lobby: NetLobby
     private var lobbyTopicName = ""
@@ -32,6 +33,7 @@ class Network(private val ip: String,
     init {
         lobby = NetLobby(gameName, isHost, nick, ip, this, players, playersLock)
         lobby.setDaemon(true)
+        lobby.map = ddefaultMap
         lobby.start()
         lobbyTopicName = createLobbyTopicName(gameName)
         actionsParser = NetActionsParser(ip, players, nick, actionsLock)
@@ -111,9 +113,12 @@ class Network(private val ip: String,
         return lobby.map
     }
     fun setMap(m: String){
-        lobby.map = m
-        prod.send(ProducerRecord(createLobbyTopicName(gameName),
-                PartitionID.LOBBY.ordinal, "map", m)).get()
+        if(isHost) {
+            lobby.map = m
+            prod.send(ProducerRecord(createLobbyTopicName(gameName),
+                    PartitionID.LOBBY.ordinal, "map", m)).get()
+            //println("sent map name:${lobby.map}")
+        }
     }
 }
 

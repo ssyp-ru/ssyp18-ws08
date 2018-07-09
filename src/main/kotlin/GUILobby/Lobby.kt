@@ -33,6 +33,9 @@ class Lobby(val gc: GameContainer, val IsHost: Boolean, val networckobj: Network
     val miniMaps = Array<Image>(maps.size,{i:Int->Image("res/minimapfowlmap${i+1}.bmp")})
     var mapName = maps[0]
     var mapIndex = 0
+    init{
+        if(IsHost)networckobj.setMap(mapName)
+    }
     fun render(g: Graphics) {
         if (IsHost) {
             startButton.draw(gc, gc.input.mouseX.toFloat(), gc.input.mouseY.toFloat())
@@ -60,6 +63,11 @@ class Lobby(val gc: GameContainer, val IsHost: Boolean, val networckobj: Network
     }
 
     fun update() {
+        if(!IsHost){
+            mapName=networckobj.getMap()
+
+            mapIndex=maps.indexOf(mapName)
+        }
         if (startButton.state == State.USED&&IsHost) {
             networckobj.startGame()
         }
@@ -70,6 +78,7 @@ class Lobby(val gc: GameContainer, val IsHost: Boolean, val networckobj: Network
         if (changeMapButt.state == State.USED&&IsHost) {
             mapIndex= if(mapIndex==0)1 else (mapIndex+1)%mapIndex
             mapName=maps[mapIndex]
+            networckobj.setMap(mapName)
         }
         if (networckobj.hostExited) {
             exited = true

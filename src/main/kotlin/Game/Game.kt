@@ -49,7 +49,7 @@ class Game(var gc: GameContainer, val gameName: String,
     private lateinit var UI: UserInterface
 
     init {
-        net = Network("10.0.0.88:9092", gameName, isHost, nick, gs)
+        net = Network("10.0.0.88:9092", gameName, isHost, nick, gs, mapName)
         lob = Lobby(gc, isHost, net, gameName)
         playersCreated = false
         gc.setVSync(true)

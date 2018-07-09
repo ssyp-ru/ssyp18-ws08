@@ -21,13 +21,6 @@ class NetLobby(private val gameName: String,
     private var exit = false
     var hostExited = false
     var map = ""
-        get() = field
-        set(m){
-            if(isHost)
-                //mapLock.lock()
-                field = m
-                //mapLock.unlock()
-        }
     //private var mapLock = ReentrantLock()
 
     override fun run() {
@@ -91,7 +84,10 @@ class NetLobby(private val gameName: String,
                         }
                         players.remove(NetPlayer(r.value(), true, false))
                     }
-                    "map" -> map = r.value()
+                    "map" -> {
+                        map = r.value()
+                        //println("recieved map name:$map")
+                    }
                     "state" -> if (r.value() == "ready")isGameReady = true
 
                 }
