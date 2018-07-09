@@ -10,8 +10,8 @@ class Camera() {
     var y: Int = 0
     private var viewPort: Rectangle
     private val radius: Int = 16
-    private val WIDTH = 1366f
-    private val HEIGHT = 768f
+    private val WIDTH = 1920f
+    private val HEIGHT = 1080f
 
     init {
         viewPort = Rectangle(0f, 0f, WIDTH, HEIGHT)
