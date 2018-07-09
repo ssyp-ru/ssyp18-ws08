@@ -2,13 +2,16 @@ package Game
 
 import org.newdawn.slick.Color
 import org.newdawn.slick.geom.Vector2f
+import java.util.*
 
 abstract class RangedWeapon(val rapidiy:Float,
                             val damage:Int,
                             override val cooldown:Float,
                             val ID:Int,
                             val velocity:Float,
-                            val ammo:Int):Weapon(){
+                            val ammo:Int,
+                            val recoil:Int,
+                            val bulletR:Float):Weapon(){
 
 
 //    fun drow(g:org.newdawn.slick.Graphics){
@@ -30,11 +33,11 @@ abstract class RangedWeapon(val rapidiy:Float,
         if (cooldownCounter == cooldown) {
             when (ammoCounter){
                 in 1..ammo -> {
-                    val bulletR = 5F
                     val direct = mouseVec.normalise()
-                    val vecSpawn = direct.scale(playerR + bulletR * 2)
+                    val vecSpawn = direct.scale(playerR + bulletR * 2.5F)
+                    direct.add((Random().nextInt(recoil * 2) - recoil).toDouble())
                     arrBullets.add(Bullets(playerX + playerR + vecSpawn.x,
-                            playerY + playerR + vecSpawn.y, direct.scale(velocity), damage, bulletR))
+                            playerY + playerR + vecSpawn.y, direct.scale(velocity), damage, bulletR, k))
                     cooldownCounter -= rapidiy
                     ammoCounter --
                     if (ammoCounter == 0) {cooldownCounter = 0F; ammoCounter = ammo}
@@ -49,8 +52,13 @@ abstract class RangedWeapon(val rapidiy:Float,
 }
 
 class Pistol(override var playerX:Float, override var playerY:Float, override val playerR:Float,
-             override var mouseVec:Vector2f):RangedWeapon(20F, 3, 300F, 101, 0.3F, 7){}
+             override var mouseVec:Vector2f):RangedWeapon(20F, 3, 300F, 101, 0.3F,
+        7, 5, 3F){}
+
 class MiniGun(override var playerX:Float, override var playerY:Float, override val playerR:Float,
-              override var mouseVec:Vector2f):RangedWeapon(3F, 1, 600F, 101, 0.3F, 200){}
+              override var mouseVec:Vector2f):RangedWeapon(3F, 1, 600F, 102, 0.2F,
+        200, 45, 5F){}
+
 class Awp(override var playerX:Float, override var playerY:Float, override val playerR:Float,
-              override var mouseVec:Vector2f):RangedWeapon(60F, 5, 240F, 101, 1F, 5){}
+              override var mouseVec:Vector2f):RangedWeapon(60F, 5, 240F, 103, 1F,
+        5, 1, 10F){}

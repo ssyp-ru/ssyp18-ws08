@@ -1,5 +1,0 @@
-package GUI
-
-class HelloTest {
-
-}
