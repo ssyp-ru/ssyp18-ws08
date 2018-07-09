@@ -7,14 +7,16 @@ import org.newdawn.slick.tiled.TiledMap
 import java.awt.MouseInfo
 
 
-class Camera(map: TiledMap, private val mapWidth: Int, private val mapHeight: Int) {
+class Camera() {
     var x: Int = 0
     var y: Int = 0
     private var viewPort: Rectangle
     private val radius: Int = 16
+    private val WIDTH = 1920f
+    private val HEIGHT = 1080f
 
     init {
-        viewPort = Rectangle(0f, 0f, 1920f, 1080f)
+        viewPort = Rectangle(0f, 0f, WIDTH, HEIGHT)
     }
 
     fun translate(g: Graphics, hero: Player, gc: GameContainer) {

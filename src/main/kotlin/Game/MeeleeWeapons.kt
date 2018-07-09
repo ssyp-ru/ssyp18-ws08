@@ -1,6 +1,7 @@
 package Game
 
 import org.newdawn.slick.Color
+import org.newdawn.slick.Image
 import org.newdawn.slick.geom.Vector2f
 import java.io.Serializable
 import kotlin.math.*
@@ -21,7 +22,6 @@ abstract class Meelee(val attackRange:Float,
         y = playerY - playerR * attackRange / 2
         r = playerR * (attackRange + 2)
         g.color = if(cooldown == cooldownCounter) Color.cyan else Color.red
-
         val temp = toDegree(PI) / 3 * atan(mouseVec.y / mouseVec.x)
         val tempAngle:Float
         if (mouseVec.x >= 0) {
@@ -72,7 +72,7 @@ abstract class Meelee(val attackRange:Float,
 }
 
 class Knife(override var playerX: Float, override var playerY: Float, override val playerR: Float,
-            override var mouseVec:Vector2f): Meelee(1F, 90F, 30F, 3, 0) {}
+            override var mouseVec:Vector2f): Meelee(3F, 90F, 30F, 5, 0)
 class Rapier(override var playerX: Float, override var playerY: Float, override val playerR: Float,
              override var mouseVec:Vector2f): Meelee(5F, 15F, 60F, 4, 1) {}
 class DeathPulse(override var playerX: Float, override var playerY: Float, override val playerR: Float,

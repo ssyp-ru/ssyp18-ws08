@@ -37,15 +37,16 @@ class Player(var x: Float,
 
     init {
         arrayMeeleeWeapon.add(Knife(x, y, R, mouseVec))
-        arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec))
-        arrayMeeleeWeapon.add(DeathPulse(x, y, R, mouseVec))
-        arrayRangedWeapon.add(Pistol(x, y, R, mouseVec))
-        arrayRangedWeapon.add(MiniGun(x, y, R, mouseVec))
-        arrayRangedWeapon.add(Awp(x, y, R, mouseVec))
+//        arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec))
+//        arrayMeeleeWeapon.add(DeathPuls(x, y, R, mouseVec))
+//        arrayRangedWeapon.add(Pistol(x, y, R, mouseVec))
+//        arrayRangedWeapon.add(MiniGun(x, y, R, mouseVec))
+//        arrayRangedWeapon.add(Awp(x, y, R, mouseVec))
     }
 
     val rangedIdReturn: Int
         get() {
+            if (arrayRangedWeapon.size - 1 >= numRangedWeapon) return 3
             return when (arrayRangedWeapon[numRangedWeapon]) {
                 is Awp -> 2
                 is MiniGun -> 1
@@ -54,6 +55,7 @@ class Player(var x: Float,
         }
     val meeleeIdReturn: Int
         get() {
+            if (arrayMeeleeWeapon.size - 1 >= numMeeleeWeapon) return 0
             return when (arrayMeeleeWeapon[numMeeleeWeapon]) {
                 is DeathPulse -> 2
                 is Rapier -> 1
@@ -103,7 +105,7 @@ class Player(var x: Float,
     }
 
 
-    fun controlPlayer(gc: GameContainer, arrayPlayers: HashMap<String, Player>, i: Player, arrBullets: ArrayList<Bullets>) {
+    fun controlPlayer(arrayPlayers:HashMap<String, Player>, i:Player, arrBullets:ArrayList<Bullets>){
         val tempForSpeed = speed
         val movement = Vector2f(0F, 0F)
         movement.x += velocity.x
@@ -130,7 +132,7 @@ class Player(var x: Float,
     }
 
 
-    fun hit(arrPLayers: ArrayList<Player>, i: Int, cells: Array<Array<Cell>>) {
+    fun hit(arrPLayers: ArrayList<Player>, i: Int, cells: Array<Array<Cell>>, drop:ArrayList<WeaponMap>) {
         for (n in 0..(cells.size - 1)) {
             for (m in 0..(cells.size - 1)) {
                 if ((cells[n][m].type == layer.CRATES) || (cells[n][m].type == layer.WATER) ||
@@ -145,8 +147,9 @@ class Player(var x: Float,
                 }
             }
         }
-        for (k in (i + 1)..(arrPLayers.size - 1)) {
-            val dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)
+        var dis:Float
+        for (k in (i + 1)..(arrPLayers.size - 1)){
+            dis = distance(x, y, arrPLayers[k].x, arrPLayers[k].y)
             if (dis < R + arrPLayers[k].R) {
                 val b2 = Vector2f(arrPLayers[k].x - x, arrPLayers[k].y - y).normalise().scale((R
                         + arrPLayers[k].R - dis) / 2)
@@ -156,6 +159,29 @@ class Player(var x: Float,
                 y += b1.y
                 arrPLayers[k].x += b2.x
                 arrPLayers[k].y += b2.y
+            }
+        }
+        for (weapon in drop){
+            dis = distance(x, y, weapon.vect.x, weapon.vect.y)
+            if (dis <= 2*R){
+                var flag = false
+                if (weapon.loot is RangedWeapon) {
+                    val giveRangedWeapon = when (weapon.loot) {
+                        is Pistol -> Pistol(x, y, R, mouseVec)
+                        is MiniGun -> MiniGun(x, y, R, mouseVec)
+                        is Awp -> Awp(x, y, R, mouseVec)
+                        else -> Pistol(x, y, R, mouseVec)
+                    }
+                    for (rangeWeapon in arrayRangedWeapon) {
+                        if (rangeWeapon.javaClass.name == giveRangedWeapon.javaClass.name) flag = true
+                    }
+                    if (!flag) {arrayRangedWeapon.add(giveRangedWeapon);weapon.loot = null;weapon.duration = 0F}
+                }
+                if (weapon.loot is Rapier){
+                    for (meeleeWeapon in arrayMeeleeWeapon)
+                        if (meeleeWeapon::class == Rapier::class) flag = true
+                    if (!flag) {arrayMeeleeWeapon.add(Rapier(x, y, R, mouseVec));weapon.loot = null;weapon.duration = 0F}
+                }
             }
         }
         if (numMeeleeWeapon <= arrayMeeleeWeapon.size - 1) {
@@ -189,8 +215,8 @@ class Player(var x: Float,
         g.color = Color(0f, 0f, 0f)
         var barShift = 2
         g.fillRect(x - barShift, y, widthBar + barShift * 2, heightBar + barShift)
-        g.color = Color(1f, 0f, 0f)
-        g.fillRect(x, y + barShift, widthBar * this.HP / maxHP, heightBar)
+        g.color = Color(1f,0f,0f)
+        g.fillRect(x, y + barShift, widthBar * (if(this.HP < 0) 0f else this.HP / maxHP.toFloat()), heightBar)
         g.color = Color.white
         barShift = 5
         g.drawString("HP: $HP", x, y - barShift)

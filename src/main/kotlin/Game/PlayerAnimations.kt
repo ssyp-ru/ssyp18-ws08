@@ -44,6 +44,7 @@ object PlayerAnimations{
         listOfRangedImagesArrays.add(pistolAnimationImages)
         listOfRangedImagesArrays.add(minigunAnimationImages)
         listOfRangedImagesArrays.add(sniperAnimationImages)
+        listOfRangedImagesArrays.add(knifeAnimationImages)
 
         listOfMeeleeImagesArrays.add(knifeAnimationImages)
         listOfMeeleeImagesArrays.add(rapierAnimationImages)
@@ -52,6 +53,7 @@ object PlayerAnimations{
         listOfRangedAnimations.add(pistolAnimation)
         listOfRangedAnimations.add(minigunAnimation)
         listOfRangedAnimations.add(sniperAnimation)
+        listOfRangedAnimations.add(knifeAnimation)
 
         listOfMeeleeAnimations.add(knifeAnimation)
         listOfMeeleeAnimations.add(rapierAnimation)
