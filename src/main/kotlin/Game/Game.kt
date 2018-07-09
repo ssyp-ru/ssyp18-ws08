@@ -152,7 +152,8 @@ class Game(var gc: GameContainer, val gameName: String,
                         gamer.x = a.params[0].toFloat()
                         gamer.y = a.params[1].toFloat()
                         gamer.HP = gamer.maxHP
-                        ++gamer.deaths
+                        //tak nado
+                        //++gamer.deaths
                         gamer.killStreak = 0
                         gamer.arrayRangedWeapon = ArrayList<RangedWeapon>()
                         gamer.arrayMeeleeWeapon = ArrayList<Meelee>()
@@ -203,15 +204,18 @@ class Game(var gc: GameContainer, val gameName: String,
 
             for(p in gs.players){
                 if(p.value.HP <= 0){
+                    if(!p.value.isDead)p.value.deaths++
                     p.value.isDead = true
+
                     //телепортируем мёртвых за карту
                     p.value.x = 9999f
                     p.value.y = 9999f
                 }
             }
+            UI.syncState(gs)
             net.gameState = gs
         }
-        UI.syncState(gs)
+        //UI.syncState(gs)
     }
 
     private fun myControls(gc: GameContainer) {
@@ -338,7 +342,9 @@ class Game(var gc: GameContainer, val gameName: String,
             gmr.x = teleport[randomIndex].x
             gmr.y = teleport[randomIndex].y
             gmr.HP = gmr.maxHP
-            ++gmr.deaths
+            //так надо
+            //++gmr.deaths
+            if(!gmr.isDead)gmr.deaths++
             gmr.killStreak = 0
             net.doAction("ressurection", asList("${gmr.x}", "${gmr.y}"))
             gmr.arrayRangedWeapon = ArrayList<RangedWeapon>()
