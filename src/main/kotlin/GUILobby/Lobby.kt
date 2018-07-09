@@ -16,18 +16,18 @@ class Lobby(val gc: GameContainer, val IsHost: Boolean, val networckobj: Network
     val rand = Random(Date().time)
     val placeHolderIamge = Image("res/lobbymems/" + jpgNames[rand.nextInt(jpgNames.size)] + ".jpg")
     val miniMap = Image("res/map_screen.png")
-    val xOfJPEG = gc.screenWidth / 40f
-    val yOfJPEG = gc.screenHeight / 40f
-    val lengthOfJPEG = gc.screenWidth / 5f
-    val heightOfJPEG = gc.screenHeight * 0.9f
+    val xOfJPEG = gc.width / 40f
+    val yOfJPEG = gc.height / 40f
+    val lengthOfJPEG = gc.width / 5f
+    val heightOfJPEG = gc.height * 0.9f
     val placeHolderX = xOfJPEG + lengthOfJPEG + 1
-    val placeHoldery = yOfJPEG
-    val placeHolderLength = gc.screenWidth - lengthOfJPEG - xOfJPEG - 1 - (gc.screenWidth.toFloat() / 3f)
-    val fontLobbyName = TrueTypeFont(java.awt.Font("Comic Sans MS", java.awt.Font.BOLD, gc.screenHeight / 40
+    val placeHolderY = yOfJPEG
+    val placeHolderLength = gc.width - lengthOfJPEG - xOfJPEG - 1 - (gc.width.toFloat() / 3f)
+    val fontLobbyName = TrueTypeFont(java.awt.Font("Comic Sans MS", java.awt.Font.BOLD, gc.height / 40
     ), false)
     val fontPlayerName = TrueTypeFont(java.awt.Font("Comic Sans MS", java.awt.Font.BOLD,
-            gc.screenHeight / 50), false)
-    val miniMapSize = gc.screenHeight - gc.screenWidth.toFloat() / 4f - 1
+            gc.height / 50), false)
+    val miniMapSize = Math.min(gc.height - gc.width.toFloat() / 4f - 1,gc.width-placeHolderX-placeHolderLength-1)
 
     init{
         println("lobby initialized")
@@ -38,11 +38,11 @@ class Lobby(val gc: GameContainer, val IsHost: Boolean, val networckobj: Network
         }
         backButton.draw(gc, gc.input.mouseX.toFloat(), gc.input.mouseY.toFloat())
         listOfPlayersIamge.draw(xOfJPEG, yOfJPEG, lengthOfJPEG, heightOfJPEG)
-        placeHolderIamge.draw(placeHolderX, placeHoldery, placeHolderLength, heightOfJPEG)
+        placeHolderIamge.draw(placeHolderX, placeHolderY, placeHolderLength, heightOfJPEG)
 
-        miniMap.draw(gc.screenWidth.toFloat() - miniMapSize, 0f, miniMapSize, miniMapSize)
-        var playerNameShiftY = yOfJPEG + gc.screenHeight / 9f
-        val playerNameShiftX = xOfJPEG + gc.screenWidth / 40f
+        miniMap.draw(gc.width.toFloat() - miniMapSize, 0f, miniMapSize, miniMapSize)
+        var playerNameShiftY = yOfJPEG + gc.height / 9f
+        val playerNameShiftX = xOfJPEG + gc.width / 40f
         val players = networckobj.getPlayers()
         g.color = Color.black
         g.font = fontLobbyName
@@ -51,10 +51,10 @@ class Lobby(val gc: GameContainer, val IsHost: Boolean, val networckobj: Network
         for (i in 0..(players.size - 1)) {
             g.drawString(if (i == 0) "Host: " + players[i].nick else "player: " + players[i].nick, playerNameShiftX,
                     playerNameShiftY)
-            playerNameShiftY += gc.screenHeight / 20f
+            playerNameShiftY += gc.height / 20f
         }
         g.color=Color.gray
-        g.drawString("Before launching game, we recommend you to get some paper bags",1f,gc.screenHeight-30f)
+        g.drawString("Before launching game, we recommend you to get some paper bags",1f,gc.height-30f)
     }
 
     fun lobbyUpdate() {

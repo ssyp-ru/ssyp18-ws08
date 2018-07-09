@@ -8,8 +8,8 @@ class Rules(gc: GameContainer) : Button(gc ,
         imageCommon = Image("res/rules1.png"),
         imageLighted = Image("res/rules2.png"),
         imageClicked = Image("res/rules3.png"),
-        sizeX = gc.screenWidth.toFloat() / 3f,
-        sizeY = gc.screenWidth.toFloat() / 8f ,
-        xButton = gc.screenWidth.toFloat() / 3f ,
-        yButton = gc.screenHeight.toFloat() / 3f) {
+        sizeX = gc.width.toFloat() / 3f,
+        sizeY = gc.width.toFloat() / 8f ,
+        xButton = gc.width.toFloat() / 3f ,
+        yButton = gc.height.toFloat() / 3f) {
 }

@@ -56,9 +56,8 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
 
     @Throws(SlickException::class)
     override fun render(gc: GameContainer, g: Graphics) {
-        val coord = MouseInfo.getPointerInfo().location
-        val x = coord.x.toFloat() //координаты мышки`
-        val y = coord.y.toFloat()//координаты мышки
+        val x = gc.input.mouseX.toFloat() //координаты мышки`
+        val y = gc.input.mouseY.toFloat() //координаты мышки
         if (!gameStarted) {
             if ((starter.state != State.USED && rules.state != State.USED) || back.state == State.USED) {
                 back.state = State.COMMON
