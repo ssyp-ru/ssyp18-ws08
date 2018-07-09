@@ -29,9 +29,11 @@ class SimpleSlickGame(gamename: String) : BasicGame(gamename) {
         sng = StartNewGame(gc)
         sjg = StartJoinGame(gc)
         text1 = TextField(gc, TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 35),
-                false), gc.width / 3, (gc.height / 1.7f).toInt(), gc.width / 3, gc.width / 16)
+                false), gc.width / 3,
+                (gc.height / 1.7f).toInt(), gc.width / 3, gc.height / 8)
         text2 = TextField(gc, TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 35),
-                false), gc.width / 3, (gc.height / 1.4f).toInt(), gc.width / 3, gc.width / 16)
+                false), gc.width / 3, (gc.height / 1.4f).toInt(),
+                gc.width / 3, gc.height / 8)
         text1.text = "Nick"
         text2.text = "Lobby"
     }

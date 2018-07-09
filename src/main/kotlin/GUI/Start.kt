@@ -12,4 +12,5 @@ class Start(gc: GameContainer) : Button(gc,
         sizeY = gc.width.toFloat() / 8f,
         xButton = gc.width.toFloat() / 3f,
         yButton = gc.height.toFloat() / 12f) {
+
 }

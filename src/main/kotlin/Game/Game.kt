@@ -22,7 +22,7 @@ class Game(var gc: GameContainer, val gameName: String,
            var nick: String, var isHost: Boolean) {
 
     var gs = GameState()
-    var timer =10
+    var timer = 10
     private lateinit var map: TiledMap
     private lateinit var comic: TrueTypeFont
     private lateinit var color: Color
@@ -40,6 +40,7 @@ class Game(var gc: GameContainer, val gameName: String,
     private var minimapSize = 0
     var isMinimapRendered = false
     var exited = false
+    var mapName = "FowlMap1.TMX"
     var extViewed = false
     var exit = Exit(gc)
     val net: Network
@@ -53,13 +54,11 @@ class Game(var gc: GameContainer, val gameName: String,
         playersCreated = false
         gc.setVSync(true)
         gc.alwaysRender = true
-        map = TiledMap("res/map/FirstFowlMap.TMX")
+        map = TiledMap("res/map/$mapName")
         mapHeight = map.height * map.tileHeight
         mapWidth = map.width * map.tileWidth
         tileHeight = map.tileHeight
         tileWidth = map.tileWidth
-        comic = TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 20), false)
-        color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         for (i in 0..(cells.size - 1)) {
             for (j in 0..(cells[i].size - 1)) {
                 cells[i][j] = Cell(i * tileWidth, j * tileHeight, layer.GRASS)
@@ -72,10 +71,11 @@ class Game(var gc: GameContainer, val gameName: String,
                             layer.WATER)
                     (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * tileWidth, j * tileHeight,
                             layer.HOUSES)
-
                 }
             }
         }
+        comic = TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 20), false)
+        color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         camera = Camera(map, mapWidth, mapHeight)
         UI = UserInterface(gc, gs, nick, cells)
     }
@@ -83,11 +83,28 @@ class Game(var gc: GameContainer, val gameName: String,
 
     fun update() {
         if (!net.getGameStarted()) {
-            lob.lobbyUpdate()
+            lob.update()
+            mapName = lob.mapName
             exited = lob.exited
         }
-        if(timer<10)timer+=1
+        if (timer < 10) timer += 1
         if (net.getGameStarted() and (gs.players.isEmpty())) {
+            map =  TiledMap("res/map/$mapName")
+            for (i in 0..(cells.size - 1)) {
+                for (j in 0..(cells[i].size - 1)) {
+                    cells[i][j] = Cell(i * tileWidth, j * tileHeight, layer.GRASS)
+                    when {
+                        (map.getTileId(i, j, 0) != 0) -> cells[i][j] = Cell(i * tileWidth, j *
+                                tileHeight, layer.ROADS)
+                        (map.getTileId(i, j, 1) != 0) -> cells[i][j] = Cell(i * tileWidth, j *
+                                tileHeight, layer.CRATES)
+                        (map.getTileId(i, j, 3) != 0) -> cells[i][j] = Cell(i * tileWidth, j *
+                                tileHeight, layer.WATER)
+                        (map.getTileId(i, j, 4) != 0) -> cells[i][j] = Cell(i * tileWidth, j *
+                                tileHeight, layer.HOUSES)
+                    }
+                }
+            }
             val plrs = net.getPlayersAsHashMap()
             for (p in plrs) {
                 gs.players[p.key] = Player(1800f, 1800f, 5, p.key, mouseVec = Vector2f(1f, 1f),
@@ -98,16 +115,15 @@ class Game(var gc: GameContainer, val gameName: String,
                 println("${p.key} - ${p.value}")
             }
         } else if (net.getGameStarted() and playersCreated) {
-            if (gc.input.isKeyDown(Input.KEY_ESCAPE)&&timer==10) {
-                timer=0
+            if (gc.input.isKeyDown(Input.KEY_ESCAPE) && timer == 10) {
+                timer = 0
                 extViewed = !extViewed
             }
 
             //SYNC
             val tmp = net.gameState
             if (tmp is GameState) gs = tmp
-            if (extViewed && exit.state==State.USED)
-            {
+            if (extViewed && exit.state == State.USED) {
                 exited = true
             }
 
@@ -296,7 +312,7 @@ class Game(var gc: GameContainer, val gameName: String,
         val HPbarDislocationHeight = 52.5f
         val HPbarDislocationWidth = 27.5f
         if (!net.getGameStarted()) {
-            lob.lobbyRender(g)
+            lob.render(g)
         } else if (playersCreated) {
             if (gs.players.containsKey(nick)) camera.translate(g, gs.players[nick]!!, gc)
             g.background = Color.blue
@@ -328,7 +344,7 @@ class Game(var gc: GameContainer, val gameName: String,
                 exit.yButton = -camera.y.toFloat()
                 exit.draw(gc, -camera.x + gc.input.mouseX.toFloat(), -camera.y + gc.input.mouseY.toFloat())
             }
-            if(exited)g.background= Color.black
+            if (exited) g.background = Color.black
         }
 
     }
