@@ -33,6 +33,7 @@ class NetLobby(private val gameName: String,
         prod.send(ProducerRecord(topicName, PartitionID.LOBBY.ordinal, "player", nick)).get()
         waitPlayers()
         if(exit or hostExited)return
+        //println(map)
         net.setGameStarted()
         if (!isHost) net.startGame()
     }
@@ -41,17 +42,19 @@ class NetLobby(private val gameName: String,
         val part = TopicPartition(topicName, 0)
         cons.seekToEnd(asList(part))
         var records = cons.poll(10)
-        var offset: Long = cons.endOffsets(asList(part))[part]!! - 1
+        var offset: Long = cons.endOffsets(asList(part))[part]!! - (if(isHost)0 else 1)
         while (if (records.iterator().hasNext()) (records.iterator().next().key() != "newGame") else true) {
             cons.seek(part, offset)
             records = cons.poll(10)
             if (records.isEmpty) continue
+            //println("${records.iterator().next().key()} -> ${records.iterator().next().value()}")
             offset--
         }
         cons.seek(part, ++offset)
         while (!isGameReady or exit) {
             records = cons.poll(40)
             for (r in records) {
+                //println("${r.key()} -> ${r.value()}")
                 when(r.key()) {
                     "player" -> {
                         if(!players.contains(NetPlayer(r.value(), true, false))) {

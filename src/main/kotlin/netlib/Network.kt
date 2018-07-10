@@ -68,6 +68,7 @@ class Network(ip: String,
             prod.send(ProducerRecord(lobbyTopicName, PartitionID.LOBBY.ordinal, "state", "ready"))
         }
         while (!gameStarted) {
+            print("")//Magic!! Do NOT Remove!!!!!!!!!!!!!!
         }
         syncer.setPlayers(players)
         actionsParser.start()
@@ -115,6 +116,12 @@ class Network(ip: String,
             prod.send(ProducerRecord(createLobbyTopicName(gameName),
                     PartitionID.LOBBY.ordinal, "map", m)).get()
         }
+    }
+
+    fun stopThreads(){
+        syncer.stop()
+        actionsParser.stop()
+        lobby.stop()
     }
 }
 

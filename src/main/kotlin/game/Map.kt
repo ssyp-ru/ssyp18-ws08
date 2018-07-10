@@ -13,6 +13,8 @@ class Map(val gs: GameState, var mapName: String = "FowlMap1.TMX"): TiledMap("re
     init {
         mapHeight = height * tileHeight
         mapWidth = width * tileWidth
+        teleport.clear()
+        gs.weaponSpawn.clear()
         for (i in 0 until cells.size) {
             for (j in 0 until cells[i].size) {
                 cells[i][j] = Cell(i * tileWidth, j * tileHeight, LayerType.GRASS)

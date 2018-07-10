@@ -78,6 +78,7 @@ class NetSync(gs: Serializable,
         gsarr = serialize(gameState)
         gsarrLock.unlock()
         isHost = b
+        println(if(isHost)"Host" else "client")
     }
 
     override fun run() {

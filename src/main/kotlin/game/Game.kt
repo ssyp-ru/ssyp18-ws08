@@ -24,10 +24,10 @@ class Game(var gc: GameContainer, gameName: String,
     private var extViewed = false
     private var exit = Exit(gc)
     var exited = false
-    private val net: Network
+    val net: Network
     private var playersCreated = false
     private var userInterface: UserInterface
-
+    lateinit var weaponIcons:Array<Image>
     init {
         net = Network("10.0.0.88:9092", gameName, isHost, nick, gs, map.mapName)
         lob = Lobby(gc, isHost, net, gameName)
@@ -37,7 +37,7 @@ class Game(var gc: GameContainer, gameName: String,
         comic = TrueTypeFont(Font("Comic Sans MS", Font.BOLD, 20), false)
         color = Color(Random().nextFloat(), Random().nextFloat(), Random().nextFloat())
         camera = Camera(gc)
-        val weaponIcons = arrayOf(
+        weaponIcons = arrayOf(
                 Image("res/animations/knife.png"), Image("res/animations/rapier.png"),
                 Image("res/animations/rapier.png"), Image("res/animations/pistol.png"),
                 Image("res/animations/minigun.png"), Image("res/animations/AWP.png")
@@ -53,6 +53,10 @@ class Game(var gc: GameContainer, gameName: String,
             exited = lob.exited
         }
         if (net.getGameStarted() and (gs.players.isEmpty())) {
+            map.mapName = net.getMap()
+            map= Map(gs,map.mapName)
+            userInterface = UserInterface(gc, gs, nick, map.cells, weaponIcons)
+            userInterface.isMinimapCreated=false
             val playerHashMap = net.getPlayersAsHashMap()
             for (player in playerHashMap) {
                 val randomIndex = Random().nextInt(map.teleport.size - 1)

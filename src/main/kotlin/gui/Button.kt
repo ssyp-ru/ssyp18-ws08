@@ -26,7 +26,7 @@ abstract class Button(var imageCommon: Image,
             State.COMMON -> imageCommon.draw(xButton, yButton, sizeX, sizeY)
             State.LIGHTED -> imageLighted.draw(xButton, yButton, sizeX, sizeY)
             State.CLICKED -> imageClicked.draw(xButton, yButton, sizeX, sizeY)
-            State.USED -> return
+            State.USED -> {}
         }
         when {
             state == State.CLICKED && !flag -> state = State.USED

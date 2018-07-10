@@ -40,7 +40,9 @@ class Menu(gameName: String) : BasicGame(gameName) {
     override fun update(gc: GameContainer, i: Int) {
         val nick: String
         val lobby: String
-
+        if (exit.state == State.USED) {
+            gc.exit()
+        }
         if (sjg.state == State.USED || sng.state == State.USED) {
             nick = text1.text
             lobby = text2.text
@@ -53,6 +55,7 @@ class Menu(gameName: String) : BasicGame(gameName) {
         if (gameStarted) {
             maingame.update()
             exited = maingame.exited
+            if(maingame.exited)maingame.net.stopThreads()
             gameStarted = !maingame.exited
         }
     }
@@ -75,18 +78,21 @@ class Menu(gameName: String) : BasicGame(gameName) {
                 menu.draw(gc, x, y)
                 menu.state = State.COMMON
                 back.draw(gc, x, y)
+                g.color=Color.black
+                g.drawString("Steal, Kill...",gc.width.toFloat() / 20f + gc.width.toFloat() / 3f ,
+                        gc.width.toFloat() / 20f +gc.height.toFloat() / 3f)
             }
             if (starter.state == State.USED && !(sjg.state == State.USED || sng.state == State.USED)) {
                 sjg.draw(gc, x, y)
                 sng.draw(gc, x, y)
                 back.draw(gc, x, y)
+                g.color=Color.white
+
                 text1.render(gc, g)
                 text2.render(gc, g)
             }
 
-            if (exit.state == State.USED) {
-                gc.exit()
-            }
+
         } else maingame.render(g)
     }
 }
